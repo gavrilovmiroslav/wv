@@ -3,4 +3,13 @@ name = "wv"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "wv"
+crate-type = ["rlib", "staticlib"]
+
 [dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.142"
+
+[build-dependencies]
+cbindgen = "0.29.0"
