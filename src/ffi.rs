@@ -1,7 +1,8 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
 use crate::core::{DataField, DataValue, Datatype, Weave};
-use crate::shape::{connect, dip, focus, hoist, lift, parent};
+use crate::optic::{arrows, arrows_in, arrows_out, deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
+use crate::shape::{connect, hoist, lift, lower, parent, pivot};
 
 #[repr(C)]
 pub struct WvDataField {
@@ -207,7 +208,7 @@ unsafe extern "C" fn wv_remove_component(wv: &mut Weave, entity: usize, name: *c
     (&mut *wv).remove_component(entity, cstr);
 }
 
-/// SHAPE
+
 
 #[no_mangle]
 unsafe extern "C" fn wv_shape__parent(wv: &mut Weave, root: usize, len: usize, children: *const usize) {
@@ -216,9 +217,9 @@ unsafe extern "C" fn wv_shape__parent(wv: &mut Weave, root: usize, len: usize, c
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_shape__focus(wv: &mut Weave, lens: usize, len: usize, observers: *const usize) {
-    let observers: &[usize] = slice::from_raw_parts(observers, len);
-    focus(&mut *wv, lens, observers);
+unsafe extern "C" fn wv_shape__pivot(wv: &mut Weave, center: usize, len: usize, children: *const usize) {
+    let observers: &[usize] = slice::from_raw_parts(children, len);
+    pivot(&mut *wv, center, observers);
 }
 
 #[no_mangle]
@@ -240,7 +241,102 @@ unsafe extern "C" fn wv_shape__lift(wv: &mut Weave, len: usize, arrows: *const u
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_shape__dip(wv: &mut Weave, len: usize, arrows: *const usize) {
+unsafe extern "C" fn wv_shape__lower(wv: &mut Weave, len: usize, arrows: *const usize) {
     let arrows: &[usize] = slice::from_raw_parts(arrows, len);
-    dip(&mut *wv, arrows);
+    lower(&mut *wv, arrows);
+}
+
+
+
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__deps(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    deps(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__arrows(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    arrows(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__arrows_in(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    arrows_in(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__arrows_out(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    arrows_out(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__marks(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    marks(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__tethers(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    tethers(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__to_src(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    to_src(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__to_tgt(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    to_tgt(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__prev(wv: &mut Weave, it: usize) {
+    prev(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__prev_n(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    prev_n(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__next(wv: &mut Weave, it: usize) {
+    next(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__next_n(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    next_n(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__down(wv: &mut Weave, it: usize) {
+    down(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__down_n(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    down_n(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__up(wv: &mut Weave, it: usize) {
+    up(&*wv, it);
+}
+
+#[no_mangle]
+unsafe extern "C" fn wv_optic__up_n(wv: &mut Weave, len: usize, it: *const usize) {
+    let it: &[usize] = slice::from_raw_parts(it, len);
+    up_n(&*wv, it);
 }

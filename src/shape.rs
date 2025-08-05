@@ -22,9 +22,9 @@ pub fn parent(wv: &mut Weave, root: EntityId, children: &[EntityId]) {
       Arrow  a = (b, c)  |    Arrow  a = (b, f)
       Tether a = (b, a)  |    Arrow  a = (b, f)
 */
-pub fn focus(wv: &mut Weave, lens: EntityId, observers: &[EntityId]) {
-    for observer in observers {
-        wv.change_tgt(*observer, lens);
+pub fn pivot(wv: &mut Weave, center: EntityId, children: &[EntityId]) {
+    for observer in children {
+        wv.change_tgt(*observer, center);
     }
 }
 
@@ -76,7 +76,7 @@ pub fn lift(wv: &mut Weave, arrows: &[EntityId]) {
       --------------------------------------
       to                  s =============> o
  */
-pub fn dip(wv: &mut Weave, arrows: &[EntityId]) {
+pub fn lower(wv: &mut Weave, arrows: &[EntityId]) {
     for arrow in arrows {
         let mark = wv.tgt(*arrow);
         assert!(wv.is_mark(mark));

@@ -38,6 +38,7 @@ pub struct Weave {
     targets: Vec<usize>,
     source_ids: HashMap<usize, HashSet<usize>>,
     target_ids: HashMap<usize, HashSet<usize>>,
+
     types: HashMap<DatatypeId, Vec<DataField>>,
     data: HashMap<DatatypeId, HashMap<usize, Vec<u8>>>,
 }
@@ -107,6 +108,19 @@ impl Weave {
         if self.target_ids.contains_key(&tgt) {
             self.target_ids.get_mut(&tgt).unwrap().remove(&id);
         }
+    }
+
+    pub(crate) fn get_external_dependents(&self, id: EntityId) -> Vec<EntityId> {
+        let entities = self.get_dependents(id);
+        entities.iter().filter(|&i| *i != id).cloned().collect()
+    }
+
+    pub(crate) fn get_dependents(&self, id: EntityId) -> Vec<EntityId> {
+        let mut entities = self.get_dependents_for_source(id);
+        entities.extend_from_slice(&self.get_dependents_for_target(id));
+        entities.sort();
+        entities.dedup();
+        entities
     }
 
     pub(crate) fn get_dependents_for_source(&self, src: EntityId) -> Vec<EntityId> {

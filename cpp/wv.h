@@ -73,20 +73,51 @@ size_t wv_new_tether(Weave *wv, size_t src);
 
 Weave *wv_new_weave();
 
+void wv_optic__arrows(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__arrows_in(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__arrows_out(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__deps(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__down(Weave *wv, size_t it);
+
+void wv_optic__down_n(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__marks(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__next(Weave *wv, size_t it);
+
+void wv_optic__next_n(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__prev(Weave *wv, size_t it);
+
+void wv_optic__prev_n(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__tethers(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__to_src(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__to_tgt(Weave *wv, size_t len, const size_t *it);
+
+void wv_optic__up(Weave *wv, size_t it);
+
+void wv_optic__up_n(Weave *wv, size_t len, const size_t *it);
+
 void wv_remove_component(Weave *wv, size_t entity, const char *name);
 
 void wv_shape__connect(Weave *wv, size_t source, size_t len, const size_t *targets);
-
-void wv_shape__dip(Weave *wv, size_t len, const size_t *arrows);
-
-void wv_shape__focus(Weave *wv, size_t lens, size_t len, const size_t *observers);
 
 void wv_shape__hoist(Weave *wv, size_t subject, size_t len, const size_t *objects);
 
 void wv_shape__lift(Weave *wv, size_t len, const size_t *arrows);
 
-/// SHAPE
+void wv_shape__lower(Weave *wv, size_t len, const size_t *arrows);
+
 void wv_shape__parent(Weave *wv, size_t root, size_t len, const size_t *children);
+
+void wv_shape__pivot(Weave *wv, size_t center, size_t len, const size_t *children);
 
 size_t wv_src(const Weave *wv, size_t id);
 
