@@ -1,1 +1,5 @@
 /target
+/wvc/.vs
+/wvc/x64
+/wvc/Debug
+/wvc/wvc/x64

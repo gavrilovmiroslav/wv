@@ -253,7 +253,6 @@ namespace wv
 			return result;
 		}
 
-		template<typename It>
 		std::vector<EntityId> ArrowsIn(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__arrows_in(WV::GetWeave(), it.size(), it.data());
