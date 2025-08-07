@@ -86,7 +86,7 @@ pub fn prev(wv: &Weave, it: EntityId) -> Vec<EntityId> {
 }
 
 pub fn prev_n(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
-    let mut c = it.iter().flat_map(|e| prev(wv, *e)).collect::<Vec<_>>();;
+    let mut c = it.iter().flat_map(|e| prev(wv, *e)).collect::<Vec<_>>();
     c.sort();
     c.dedup();
     c
@@ -101,7 +101,7 @@ pub fn next(wv: &Weave, it: EntityId) -> Vec<EntityId> {
 }
 
 pub fn next_n(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
-    let mut c = it.iter().flat_map(|e| next(wv, *e)).collect::<Vec<_>>();;
+    let mut c = it.iter().flat_map(|e| next(wv, *e)).collect::<Vec<_>>();
     c.sort();
     c.dedup();
     c

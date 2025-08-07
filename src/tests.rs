@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use crate::core::Weave;
-    use crate::optic::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
+    use crate::r#move::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
     use crate::shape::hoist;
 
     #[test]

@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
 use crate::core::{DataField, DataValue, Datatype, Weave};
-use crate::optic::{arrows, arrows_in, arrows_out, deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
+use crate::r#move::{arrows, arrows_in, arrows_out, deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
 
 #[repr(C)]
@@ -157,9 +157,9 @@ unsafe extern "C" fn wv_get_data_field_count(wv: &Weave, name: *const c_char) ->
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_get_data_field_type(wv: &Weave, name: *const c_char, index: usize) -> WvDataField {
+unsafe extern "C" fn wv_get_data_field(wv: &Weave, name: *const c_char, index: usize) -> WvDataField {
     let cstr = CStr::from_ptr(name).to_str().expect("CString to_str failed");
-    WvDataField::parse((&*wv).get_datatype_field_type(cstr, index))
+    WvDataField::parse((&*wv).get_datatype_field(cstr, index))
 }
 
 #[no_mangle]
@@ -169,7 +169,7 @@ unsafe extern "C" fn wv_add_component(wv: &mut Weave, entity: usize, name: *cons
     let fields = slice::from_raw_parts(fields, count);
     let mut values = vec![];
     for i in 0..count {
-        let df = wv.get_datatype_field_type(cstr, i);
+        let df = wv.get_datatype_field(cstr, i);
         let value = match df.datatype {
             Datatype::Int => DataValue::Int(*(fields[i] as *const i64).as_ref_unchecked()),
             Datatype::Float => DataValue::Float(*(fields[i] as *const f64).as_ref_unchecked()),
@@ -191,7 +191,7 @@ unsafe extern "C" fn wv_has_component(wv: &Weave, entity: usize, name: *const c_
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_get_component(wv: &Weave, entity: usize, name: *const c_char, index: usize) -> *const c_void {
+unsafe extern "C" fn wv_get_component_field(wv: &Weave, entity: usize, name: *const c_char, index: usize) -> *const c_void {
     let cstr = CStr::from_ptr(name).to_str().expect("CString to_str failed");
     let v = (&*wv).get_component(entity, cstr);
     match &v[index] {
@@ -246,97 +246,109 @@ unsafe extern "C" fn wv_shape__lower(wv: &mut Weave, len: usize, arrows: *const 
     lower(&mut *wv, arrows);
 }
 
+#[repr(C)]
+pub struct WvArray {
+    pub len: usize,
+    pub ptr: *const usize,
+}
 
-
+impl Into<WvArray> for Vec<usize> {
+    fn into(self) -> WvArray {
+        WvArray {
+            len: self.len(),
+            ptr: Box::into_raw(self.into_boxed_slice()) as *const usize,
+        }
+    }
+}
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__deps(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__deps(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    deps(&*wv, it);
+    deps(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__arrows(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__arrows(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    arrows(&*wv, it);
+    arrows(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__arrows_in(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__arrows_in(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    arrows_in(&*wv, it);
+    arrows_in(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__arrows_out(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__arrows_out(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    arrows_out(&*wv, it);
+    arrows_out(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__marks(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__marks(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    marks(&*wv, it);
+    marks(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__tethers(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__tethers(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    tethers(&*wv, it);
+    tethers(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__to_src(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__to_src(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    to_src(&*wv, it);
+    to_src(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__to_tgt(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__to_tgt(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    to_tgt(&*wv, it);
+    to_tgt(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__prev(wv: &mut Weave, it: usize) {
-    prev(&*wv, it);
+unsafe extern "C" fn wv_move__prev(wv: &mut Weave, it: usize) -> WvArray {
+    prev(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__prev_n(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__prev_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    prev_n(&*wv, it);
+    prev_n(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__next(wv: &mut Weave, it: usize) {
-    next(&*wv, it);
+unsafe extern "C" fn wv_move__next(wv: &mut Weave, it: usize) -> WvArray {
+    next(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__next_n(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__next_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    next_n(&*wv, it);
+    next_n(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__down(wv: &mut Weave, it: usize) {
-    down(&*wv, it);
+unsafe extern "C" fn wv_move__down(wv: &mut Weave, it: usize) -> WvArray  {
+    down(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__down_n(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__down_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    down_n(&*wv, it);
+    down_n(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__up(wv: &mut Weave, it: usize) {
-    up(&*wv, it);
+unsafe extern "C" fn wv_move__up(wv: &mut Weave, it: usize) -> WvArray {
+    up(&*wv, it).into()
 }
 
 #[no_mangle]
-unsafe extern "C" fn wv_optic__up_n(wv: &mut Weave, len: usize, it: *const usize) {
+unsafe extern "C" fn wv_move__up_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    up_n(&*wv, it);
+    up_n(&*wv, it).into()
 }

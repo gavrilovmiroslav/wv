@@ -349,7 +349,7 @@ impl Weave {
         }
     }
 
-    pub fn get_datatype_field_type(&self, name: &str, index: usize) -> DataField {
+    pub fn get_datatype_field(&self, name: &str, index: usize) -> DataField {
         let id = Self::get_type_id(name);
         assert!(self.types.contains_key(&id));
         assert!(index < self.types[&id].len());

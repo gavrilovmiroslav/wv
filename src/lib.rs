@@ -4,4 +4,4 @@ pub mod core;
 pub mod ffi;
 pub mod shape;
 mod tests;
-mod optic;
+mod r#move;

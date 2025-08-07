@@ -20,6 +20,11 @@ struct WvDataField {
   Datatype datatype;
 };
 
+struct WvArray {
+  size_t len;
+  const size_t *ptr;
+};
+
 
 extern "C" {
 
@@ -41,11 +46,11 @@ void wv_delete_orphan(Weave *wv, size_t *id);
 
 void wv_free_weave(Weave *weave);
 
-const void *wv_get_component(const Weave *wv, size_t entity, const char *name, size_t index);
+const void *wv_get_component_field(const Weave *wv, size_t entity, const char *name, size_t index);
+
+WvDataField wv_get_data_field(const Weave *wv, const char *name, size_t index);
 
 size_t wv_get_data_field_count(const Weave *wv, const char *name);
-
-WvDataField wv_get_data_field_type(const Weave *wv, const char *name, size_t index);
 
 uint64_t wv_get_data_id(const Weave *wv, const char *name);
 
@@ -63,6 +68,38 @@ bool wv_is_tether(const Weave *wv, size_t id);
 
 bool wv_is_valid(const Weave *wv, size_t id);
 
+WvArray wv_move__arrows(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__arrows_in(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__arrows_out(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__deps(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__down(Weave *wv, size_t it);
+
+WvArray wv_move__down_n(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__marks(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__next(Weave *wv, size_t it);
+
+WvArray wv_move__next_n(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__prev(Weave *wv, size_t it);
+
+WvArray wv_move__prev_n(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__tethers(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__to_src(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__to_tgt(Weave *wv, size_t len, const size_t *it);
+
+WvArray wv_move__up(Weave *wv, size_t it);
+
+WvArray wv_move__up_n(Weave *wv, size_t len, const size_t *it);
+
 size_t wv_new_arrow(Weave *wv, size_t src, size_t tgt);
 
 size_t wv_new_knot(Weave *wv);
@@ -72,38 +109,6 @@ size_t wv_new_mark(Weave *wv, size_t tgt);
 size_t wv_new_tether(Weave *wv, size_t src);
 
 Weave *wv_new_weave();
-
-void wv_optic__arrows(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__arrows_in(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__arrows_out(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__deps(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__down(Weave *wv, size_t it);
-
-void wv_optic__down_n(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__marks(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__next(Weave *wv, size_t it);
-
-void wv_optic__next_n(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__prev(Weave *wv, size_t it);
-
-void wv_optic__prev_n(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__tethers(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__to_src(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__to_tgt(Weave *wv, size_t len, const size_t *it);
-
-void wv_optic__up(Weave *wv, size_t it);
-
-void wv_optic__up_n(Weave *wv, size_t len, const size_t *it);
 
 void wv_remove_component(Weave *wv, size_t entity, const char *name);
 
