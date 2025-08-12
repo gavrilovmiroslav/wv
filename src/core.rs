@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::marker::PhantomData;
 use serde::{Deserialize, Serialize};
 
 pub type EntityId = usize;
@@ -30,22 +31,25 @@ pub struct DataField {
     pub datatype: Datatype,
 }
 
-pub struct Weave {
-    available: usize,
+pub struct PreWeave<T> {
+    t: PhantomData<T>,
+    pub(crate) available: usize,
     pub(crate) freelist: Vec<usize>,
-    identities: Vec<usize>,
-    sources: Vec<usize>,
-    targets: Vec<usize>,
-    source_ids: HashMap<usize, HashSet<usize>>,
-    target_ids: HashMap<usize, HashSet<usize>>,
+    pub(crate) identities: Vec<usize>,
+    pub(crate) sources: Vec<usize>,
+    pub(crate) targets: Vec<usize>,
+    pub(crate) source_ids: HashMap<usize, HashSet<usize>>,
+    pub(crate) target_ids: HashMap<usize, HashSet<usize>>,
 
-    types: HashMap<DatatypeId, Vec<DataField>>,
-    data: HashMap<DatatypeId, HashMap<usize, Vec<u8>>>,
+    pub(crate) types: HashMap<DatatypeId, Vec<DataField>>,
+    pub(crate) data: HashMap<DatatypeId, HashMap<usize, Vec<u8>>>,
 }
 
-impl Weave {
+impl<T> PreWeave<T> {
+
     pub(crate) fn new() -> Self {
-        Weave {
+        Self {
+            t: PhantomData,
             available: 1024,
             freelist: Vec::new(),
             identities: vec![Self::NIL; 1024],
@@ -251,7 +255,7 @@ impl Weave {
             return;
         }
 
-        self.identities[id] = Weave::NIL;
+        self.identities[id] = Self::NIL;
         self.freelist.push(id);
 
         if let Some(sources) = self.source_ids.get(&id) {
@@ -290,7 +294,7 @@ impl Weave {
                 continue;
             }
 
-            self.identities[next] = Weave::NIL;
+            self.identities[next] = Self::NIL;
             self.freelist.push(next);
 
             if let Some(sources) = self.source_ids.get(&next) {
@@ -395,3 +399,9 @@ impl Weave {
         }
     }
 }
+
+pub enum Instruction {
+
+}
+
+pub type Weave = PreWeave<()>;

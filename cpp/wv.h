@@ -13,7 +13,10 @@ enum class Datatype {
   String,
 };
 
-struct Weave;
+template<typename T = void>
+struct PreWeave;
+
+using Weave = PreWeave;
 
 struct WvDataField {
   const char *name;

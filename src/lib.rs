@@ -5,3 +5,4 @@ pub mod ffi;
 pub mod shape;
 mod tests;
 mod r#move;
+mod search;

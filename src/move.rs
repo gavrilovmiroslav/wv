@@ -4,6 +4,17 @@ use crate::core::{EntityId, Weave};
 pub fn deps(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     let mut h: HashSet<EntityId> = HashSet::new();
     for i in it {
+        let di = wv.get_dependents(*i);
+        h.extend(&di);
+    }
+
+    let all = h.into_iter().collect();
+    all
+}
+
+pub fn external_deps(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
+    let mut h: HashSet<EntityId> = HashSet::new();
+    for i in it {
         let di = wv.get_external_dependents(*i);
         h.extend(&di);
     }
@@ -78,7 +89,7 @@ pub fn to_tgt(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
 }
 
 pub fn prev(wv: &Weave, it: EntityId) -> Vec<EntityId> {
-    let ds = deps(wv, &[it]);
+    let ds = external_deps(wv, &[it]);
     let mut ts = to_src(wv, &ds);
     ts.sort();
     ts.dedup();
@@ -93,7 +104,7 @@ pub fn prev_n(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
 }
 
 pub fn next(wv: &Weave, it: EntityId) -> Vec<EntityId> {
-    let ds = deps(wv, &[it]);
+    let ds = external_deps(wv, &[it]);
     let mut ts = to_tgt(wv, &ds);
     ts.sort();
     ts.dedup();
@@ -107,12 +118,13 @@ pub fn next_n(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     c
 }
 
-//  arrows_out
-//         to_tgt
-//                to_tgt
-// s ======> m----> o
+//  s --> t ==> m--> o
+//  tethers
+//        arrows_out
+//              to_tgt
+//                  to_tgt
 pub fn down(wv: &Weave, it: EntityId) -> Vec<EntityId> {
-    to_tgt(wv, &to_tgt(wv, &arrows_out(wv, &[it])))
+    to_tgt(wv, &to_tgt(wv, &arrows_out(wv, &tethers(wv, &[it]))))
 }
 
 pub fn down_n(wv: &Weave, its: &[EntityId]) -> Vec<EntityId> {
@@ -122,13 +134,17 @@ pub fn down_n(wv: &Weave, its: &[EntityId]) -> Vec<EntityId> {
     c
 }
 
-// to_src
-//  arrows_in
-//         to_src
-//                marks
-// s ======> m----> o
+//  s --> t ==> m--> o
+//               marks
+//           arrows_in
+//        to_src
+//  to_src
 pub fn up(wv: &Weave, it: EntityId) -> Vec<EntityId> {
-    to_src(wv, &arrows_in(wv, &to_src(wv, &marks(wv, &[it]))))
+    let marks = marks(wv, &[it]);
+    let arrows = arrows_in(wv, &marks);
+    let tethers = to_src(wv, &arrows);
+    let entities = to_src(wv, &tethers);
+    entities
 }
 
 pub fn up_n(wv: &Weave, its: &[EntityId]) -> Vec<EntityId> {

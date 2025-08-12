@@ -1,5 +1,5 @@
 use crate::core::{EntityId, Weave};
-
+use crate::r#move::{deps, external_deps};
 /*
       Motif kind before  |    Motif kind after
     ---------------------+----------------------
@@ -40,48 +40,58 @@ pub fn connect(wv: &mut Weave, source: EntityId, targets: &[EntityId]) {
 }
 
 /*
-      from                s                o
-      --------------------------------------
-      to                  s ======> m----> o
+      from                s                  o
+      ----------------------------------------
+      to                  s ---> t ==> m---> o
  */
 pub fn hoist(wv: &mut Weave, subject: EntityId, objects: &[EntityId]) {
-    for object in objects {
-        let anchor = wv.new_mark(*object);
-        wv.new_arrow(subject, anchor);
+    for object in deps(wv, objects) {
+        let anchor = wv.new_tether(subject);
+        let guide = wv.new_mark(object);
+        wv.new_arrow(anchor, guide);
     }
 }
 
 /*
       from                s ------a----> o
                    S(a) = s ------a----> T(a) = o
-                        S(a) -----a----> T(a) = o <---(m
-                                      // change T(a) = m
-                        S(a) -----a----> m)---> o
+                        S(a) --a)    T(a) = o <---(m
+                        S(a) --a)    (m --> o
+                        S(a) --a) => (m --> o
       --------------------------------------
-      to                  s ======> m----> o
+      to                  s --> t ==> m--> o
  */
 pub fn lift(wv: &mut Weave, arrows: &[EntityId]) {
-    for arrow in arrows {
-        assert!(wv.is_arrow(*arrow));
-        let tgt = wv.tgt(*arrow);
-        let anchor = wv.new_mark(tgt);
-        wv.change_tgt(*arrow, anchor);
+    for a in arrows {
+        assert!(wv.is_arrow(*a));
+        let tgt = wv.tgt(*a);
+        wv.change_tgt(*a, *a);
+        assert!(wv.is_tether(*a));
+        let guide = wv.new_mark(tgt);
+        wv.new_arrow(*a, guide);
     }
 }
 
 /*
-      from                s ===a==> m----> o
-                          s ---*a--------> o <----(m
-                          s ----a--------> o <-x--(m
+      from                s --a) =A=> (g-> o
+                          s --a)      (g-> o
+                          \                ^
+                           --------A------/
+
+                          s x-a)      (g-x o
       --------------------------------------
-      to                  s =============> o
+      to                  s =======A=====> o
  */
 pub fn lower(wv: &mut Weave, arrows: &[EntityId]) {
     for arrow in arrows {
-        let mark = wv.tgt(*arrow);
-        assert!(wv.is_mark(mark));
-        let tgt = wv.tgt(mark);
-        wv.change_tgt(*arrow, tgt);
-        wv.delete_cascade(mark);
+        let anchor = wv.src(*arrow);
+        let guide = wv.tgt(*arrow);
+        assert!(wv.is_tether(anchor));
+        assert!(wv.is_mark(guide));
+        let source = wv.src(anchor);
+        let target = wv.tgt(guide);
+        wv.change_ends(*arrow, source, target);
+        wv.delete_cascade(anchor);
+        wv.delete_cascade(guide);
     }
 }

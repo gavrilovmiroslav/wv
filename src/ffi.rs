@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
 use crate::core::{DataField, DataValue, Datatype, Weave};
-use crate::r#move::{arrows, arrows_in, arrows_out, deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
+use crate::r#move::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
 
 #[repr(C)]
@@ -264,7 +264,7 @@ impl Into<WvArray> for Vec<usize> {
 #[no_mangle]
 unsafe extern "C" fn wv_move__deps(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = slice::from_raw_parts(it, len);
-    deps(&*wv, it).into()
+    external_deps(&*wv, it).into()
 }
 
 #[no_mangle]
