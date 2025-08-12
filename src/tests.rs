@@ -221,7 +221,11 @@ mod tests {
         hoist(&mut w, t, &[d, e, f, g ]);
 
         // pattern match
+        use std::time::Instant;
+        let now = Instant::now();
         let bindings = pattern_match_bindings(&w, p, t);
+        let elapsed = now.elapsed();
+        println!("Elapsed: {:.2?}", elapsed);
         assert_eq!(bindings.len(), 3);
         println!("{:?}", bindings);
     }
