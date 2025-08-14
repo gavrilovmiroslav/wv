@@ -1,9 +1,68 @@
 use std::collections::{HashMap, HashSet};
+use multimap::MultiMap;
 use scryer_prolog::machine::config::MachineConfig;
 use scryer_prolog::machine::parsed_results::QueryResolution::Matches;
 use scryer_prolog::machine::parsed_results::Value;
 use crate::core::{EntityId, Weave};
-use crate::r#move::{down};
+use crate::r#move::{arrows_in, arrows_out, down};
+
+pub fn pattern_match(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Vec<HashMap<EntityId, EntityId>> {
+    fn generate_product(wv: &Weave, entities: &[EntityId], candidates: MultiMap<EntityId, EntityId>) -> Vec<HashMap<EntityId, EntityId>> {
+        fn rec_generate_product(index: usize, entities: &[EntityId], used: &[EntityId],
+                                collected: &mut HashMap<EntityId, EntityId>,
+                                candidates: &MultiMap<EntityId, EntityId>,
+                                ret: &mut Vec<HashMap<EntityId, EntityId>>) {
+
+            let next = entities[index];
+
+            for candidate in candidates.get(&next) {
+                if used.contains(candidate) {
+                    continue;
+                }
+
+                collected.insert(next, *candidate);
+                if index < entities.len() - 1 {
+                    rec_generate_product(index + 1, entities, &[&used[..], &[*candidate]].concat(), collected, candidates, ret);
+                } else {
+                    ret.push(collected.clone());
+                }
+                collected.remove(&next);
+            }
+        }
+
+        let mut ret = Vec::new();
+        rec_generate_product(0, entities, &[], &mut HashMap::new(), &candidates, &mut ret);
+
+        ret
+    }
+
+    let in_pattern = down(wv, hoist_pattern);
+    let in_target = down(wv, hoist_target);
+
+    let mut degrees = MultiMap::new();
+    let mut candidates = MultiMap::new();
+
+    for entity in &in_pattern {
+        let in_degree = arrows_in(wv, &[ *entity ]).len();
+        let out_degree = arrows_out(wv, &[ *entity ]).len();
+        degrees.insert(*entity, (in_degree, out_degree));
+    }
+
+    for entity in &in_target {
+        let in_degree = arrows_in(wv, &[ *entity ]).len();
+        let out_degree = arrows_out(wv, &[ *entity ]).len();
+        for (&candidate, &(in_d, out_d)) in degrees.iter() {
+            if in_degree >= in_d && out_degree >= out_d {
+                candidates.insert(*entity, candidate);
+            }
+        }
+    }
+
+    println!("{:?}", degrees);
+    println!("{:?}", candidates);
+
+    generate_product(wv, &in_target, candidates)
+}
 
 pub fn pattern_match_bindings(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Vec<HashMap<EntityId, EntityId>> {
     let in_pattern = down(wv, hoist_pattern);

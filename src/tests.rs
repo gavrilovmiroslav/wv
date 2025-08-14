@@ -3,7 +3,7 @@
 mod tests {
     use crate::core::Weave;
     use crate::r#move::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
-    use crate::search::pattern_match_bindings;
+    use crate::search::{pattern_match, pattern_match_bindings};
     use crate::shape::hoist;
 
     #[test]
@@ -222,6 +222,8 @@ mod tests {
 
         // pattern match
         use std::time::Instant;
+        let matching = pattern_match(&w, p, t);
+        println!("{:?}", matching);
         let now = Instant::now();
         let bindings = pattern_match_bindings(&w, p, t);
         let elapsed = now.elapsed();
