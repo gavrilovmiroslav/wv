@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use multimap::MultiMap;
-use crate::core::{EntityId, Weave};
-use crate::traverse::{arrows_in, arrows_out, down};
+use crate::core::{DataValue, EntityId, Weave};
+use crate::traverse::{arrows_in, arrows_out, down, marks};
 
 struct SearchSpace {
     entities: Vec<EntityId>,
@@ -99,26 +99,66 @@ fn check_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
     true
 }
 
-fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> SearchSpace {
+fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Option<SearchSpace> {
+    fn get_component_name<'s>(wv: &Weave, e: EntityId) -> String {
+        if let DataValue::String(s) = wv.get_component(e, "With").first().unwrap() {
+            s.clone()
+        } else {
+            panic!("Component name isn't a string!");
+        }
+    }
+
     let mut in_pattern = down(wv, hoist_pattern);
     let in_target = down(wv, hoist_target);
 
     let mut degrees = MultiMap::new();
+    let mut with_components = HashMap::new();
+    let mut without_components = HashMap::new();
     let mut candidates = MultiMap::new();
 
     for entity in &in_pattern {
         let in_degree = arrows_in(wv, &[ *entity ]).len();
         let out_degree = arrows_out(wv, &[ *entity ]).len();
+        let withs = marks(wv, &[ *entity ]).iter()
+            .filter(|&m| wv.has_component(*m, "With"))
+            .map(|&m| get_component_name(wv, m))
+            .collect::<Vec<_>>();
+        let withouts = marks(wv, &[ *entity ]).iter()
+            .filter(|&m| wv.has_component(*m, "Without"))
+            .map(|&m| get_component_name(wv, m))
+            .collect::<Vec<_>>();
         degrees.insert(*entity, (in_degree, out_degree));
+        with_components.insert(*entity, withs);
+        without_components.insert(*entity, withouts);
     }
 
     for entity in &in_target {
+        let mut has_candidates = false;
         let in_degree = arrows_in(wv, &[ *entity ]).len();
         let out_degree = arrows_out(wv, &[ *entity ]).len();
-        for (&candidate, &(in_d, out_d)) in degrees.iter() {
+        'candidates: for (&candidate, &(in_d, out_d)) in degrees.iter() {
             if in_degree >= in_d && out_degree >= out_d {
+                let withs = with_components.get(&candidate).unwrap();
+                for with in withs {
+                    if !wv.has_component(*entity, with) {
+                        continue 'candidates;
+                    }
+                }
+
+                let withouts = without_components.get(&candidate).unwrap();
+                for without in withouts {
+                    if wv.has_component(*entity, without) {
+                        continue 'candidates;
+                    }
+                }
+
                 candidates.insert(candidate, *entity);
+                has_candidates = true;
             }
+        }
+
+        if !has_candidates {
+            return None;
         }
     }
 
@@ -128,16 +168,24 @@ fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: Entit
         za.cmp(&zb)
     });
 
-    SearchSpace {
+    Some(SearchSpace {
         entities: in_pattern,
         candidates,
-    }
+    })
 }
 
 pub fn find_all(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Vec<HashMap<EntityId, EntityId>> {
-    generate_products(wv, &prepare_search_space(wv, hoist_pattern, hoist_target))
+    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target) {
+        generate_products(wv, &search_space)
+    } else {
+        vec![]
+    }
 }
 
 pub fn find_one(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Option<HashMap<EntityId, EntityId>> {
-    generate_single_product(wv, &prepare_search_space(wv, hoist_pattern, hoist_target))
+    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target) {
+        generate_single_product(wv, &search_space)
+    } else {
+        None
+    }
 }

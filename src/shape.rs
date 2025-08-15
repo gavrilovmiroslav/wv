@@ -1,5 +1,12 @@
-use crate::core::{EntityId, Weave};
-use crate::traverse::{deps};
+use crate::core::{DataValue, EntityId, Weave};
+use crate::traverse::{primary};
+
+pub fn annotate(wv: &mut Weave, target: EntityId, name: &str, fields: &[DataValue]) -> EntityId {
+    let am = wv.new_mark(target);
+    wv.add_component(am, name, fields);
+    am
+}
+
 /*
       Motif kind before  |    Motif kind after
     ---------------------+----------------------
@@ -45,7 +52,7 @@ pub fn connect(wv: &mut Weave, source: EntityId, targets: &[EntityId]) {
       to                  s ---> t ==> m---> o
  */
 pub fn hoist(wv: &mut Weave, subject: EntityId, objects: &[EntityId]) {
-    for object in deps(wv, objects) {
+    for object in primary(wv, objects) {
         let anchor = wv.new_tether(subject);
         let guide = wv.new_mark(object);
         wv.new_arrow(anchor, guide);

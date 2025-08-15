@@ -48,7 +48,7 @@ pub struct PreWeave<T> {
 impl<T> PreWeave<T> {
 
     pub(crate) fn new() -> Self {
-        Self {
+        let mut wv = Self {
             t: PhantomData,
             available: 1024,
             freelist: Vec::new(),
@@ -59,7 +59,12 @@ impl<T> PreWeave<T> {
             target_ids: Default::default(),
             types: Default::default(),
             data: Default::default(),
-        }
+        };
+
+        wv.def_datatype("With", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
+        wv.def_datatype("Without", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
+
+        wv
     }
 
     pub(crate) const NIL: EntityId = usize::MAX;
@@ -330,7 +335,6 @@ impl<T> PreWeave<T> {
 
     pub fn def_datatype(&mut self, name: &str, datatype: &[DataField]) -> DatatypeId {
         let id = Self::get_type_id(name);
-        datatype.iter().for_each(|v| { println!("{:?}", v); });
         self.types.entry(id).or_insert(datatype.to_vec());
         id
     }
