@@ -4,7 +4,7 @@ mod tests {
     use crate::core::{DataValue, Weave};
     use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
     use crate::search::{find_all, find_one};
-    use crate::shape::{annotate, hoist};
+    use crate::shape::{annotate, hoist, markup};
 
     #[test]
     fn delete_becomes_nil() {
@@ -210,7 +210,7 @@ mod tests {
 
         // define target
         let d = w.new_knot();
-        w.add_component(d, "With", &[ DataValue::String("With".to_string()) ]);
+        markup(&mut w, d, "With", &[ DataValue::String("With".to_string()) ]);
         let e = w.new_knot();
         let f = w.new_knot();
         let g = w.new_knot();
@@ -250,8 +250,8 @@ mod tests {
 
         // define target
         let d = w.new_knot();
+        markup(&mut w, d, "With", &[ DataValue::String("With".to_string()) ]);
         let e = w.new_knot();
-        w.add_component(d, "With", &[ DataValue::String("With".to_string()) ]);
         let f = w.new_knot();
         let g = w.new_knot();
         w.new_arrow(d, e);
