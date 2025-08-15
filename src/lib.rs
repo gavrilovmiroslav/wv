@@ -4,5 +4,5 @@ pub mod core;
 pub mod ffi;
 pub mod shape;
 mod tests;
-mod r#move;
+mod traverse;
 mod search;

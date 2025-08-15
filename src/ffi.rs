@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
 use crate::core::{DataField, DataValue, Datatype, Weave};
-use crate::r#move::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
+use crate::traverse::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
 
 #[repr(C)]

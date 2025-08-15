@@ -1,5 +1,5 @@
 use crate::core::{EntityId, Weave};
-use crate::r#move::{deps, external_deps};
+use crate::traverse::{deps};
 /*
       Motif kind before  |    Motif kind after
     ---------------------+----------------------
