@@ -3,7 +3,7 @@
 mod tests {
     use crate::core::Weave;
     use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
-    use crate::search::{pattern_match};
+    use crate::search::{find_all, find_one};
     use crate::shape::hoist;
 
     #[test]
@@ -223,10 +223,47 @@ mod tests {
         // pattern match
         use std::time::Instant;
         let now = Instant::now();
-        let matching = pattern_match(&w, p, t);
+        let matching = find_all(&w, p, t);
         let elapsed = now.elapsed();
         println!("Elapsed: {:.2?}", elapsed);
         assert_eq!(matching.len(), 3);
         println!("{:?}", matching);
+    }
+
+    #[test]
+    fn test_pattern_match_one() {
+        let mut w: Weave = Weave::new();
+        // define pattern
+        let a = w.new_knot();
+        let b = w.new_knot();
+        let c = w.new_knot();
+        w.new_arrow(a, b);
+        w.new_arrow(a, c);
+        w.new_arrow(b, c);
+        let p = w.new_knot();
+        hoist(&mut w, p, &[ a, b, c ]);
+
+        // define target
+        let d = w.new_knot();
+        let e = w.new_knot();
+        let f = w.new_knot();
+        let g = w.new_knot();
+        w.new_arrow(d, e);
+        w.new_arrow(d, f);
+        w.new_arrow(e, f);
+        w.new_arrow(f, e);
+        w.new_arrow(g, e);
+        w.new_arrow(g, d);
+        let t = w.new_knot();
+        hoist(&mut w, t, &[d, e, f, g ]);
+
+        // pattern match
+        use std::time::Instant;
+        let now = Instant::now();
+        let matching = find_one(&w, p, t);
+        let elapsed = now.elapsed();
+        println!("Elapsed: {:.2?}", elapsed);
+        println!("{:?}", matching);
+        assert!(matching.is_some());
     }
 }
