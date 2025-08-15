@@ -171,9 +171,9 @@ unsafe extern "C" fn wv_add_component(wv: &mut Weave, entity: usize, name: *cons
     for i in 0..count {
         let df = wv.get_datatype_field(cstr, i);
         let value = match df.datatype {
-            Datatype::Int => DataValue::Int(*(fields[i] as *const i64).as_ref_unchecked()),
-            Datatype::Float => DataValue::Float(*(fields[i] as *const f64).as_ref_unchecked()),
-            Datatype::Bool => DataValue::Bool(*(fields[i] as *const bool).as_ref_unchecked()),
+            Datatype::Int => DataValue::Int(*(fields[i] as *const i64).as_ref().unwrap()),
+            Datatype::Float => DataValue::Float(*(fields[i] as *const f64).as_ref().unwrap()),
+            Datatype::Bool => DataValue::Bool(*(fields[i] as *const bool).as_ref().unwrap()),
             Datatype::String => {
                 let v = CStr::from_ptr(fields[i] as *const c_char).to_str().expect("CString to_str failed");
                 DataValue::String(v.to_string())

@@ -10,8 +10,7 @@ pub fn primary(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
         h.extend(&di);
     }
 
-    let all = h.into_iter().collect();
-    all
+    h.into_iter().collect()
 }
 
 pub fn deps(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {

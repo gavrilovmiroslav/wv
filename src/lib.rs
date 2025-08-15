@@ -1,4 +1,4 @@
-#![feature(ptr_as_ref_unchecked)]
+#![allow(dead_code)]
 
 pub mod core;
 pub mod ffi;
