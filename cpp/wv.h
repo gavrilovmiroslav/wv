@@ -13,10 +13,7 @@ enum class Datatype {
   String,
 };
 
-template<typename T = void>
-struct PreWeave;
-
-using Weave = PreWeave;
+struct Weave;
 
 struct WvDataField {
   const char *name;
@@ -114,6 +111,18 @@ size_t wv_new_tether(Weave *wv, size_t src);
 Weave *wv_new_weave();
 
 void wv_remove_component(Weave *wv, size_t entity, const char *name);
+
+WvArray wv_search__find_all(const Weave *wv,
+                            size_t hoisted_pattern,
+                            size_t hoisted_target,
+                            size_t *size,
+                            size_t *count);
+
+WvArray wv_search__find_one(const Weave *wv,
+                            size_t hoisted_pattern,
+                            size_t hoisted_target,
+                            size_t *size,
+                            size_t *count);
 
 void wv_shape__connect(Weave *wv, size_t source, size_t len, const size_t *targets);
 

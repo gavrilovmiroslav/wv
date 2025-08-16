@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::marker::PhantomData;
 use serde::{Deserialize, Serialize};
 
 pub type EntityId = usize;
@@ -31,8 +30,7 @@ pub struct DataField {
     pub datatype: Datatype,
 }
 
-pub struct PreWeave<T> {
-    t: PhantomData<T>,
+pub struct Weave {
     pub(crate) available: usize,
     pub(crate) freelist: Vec<usize>,
     pub(crate) identities: Vec<usize>,
@@ -45,11 +43,10 @@ pub struct PreWeave<T> {
     pub(crate) data: HashMap<DatatypeId, HashMap<usize, Vec<u8>>>,
 }
 
-impl<T> PreWeave<T> {
+impl Weave {
 
     pub(crate) fn new() -> Self {
         let mut wv = Self {
-            t: PhantomData,
             available: 1024,
             freelist: Vec::new(),
             identities: vec![Self::NIL; 1024],
@@ -403,9 +400,3 @@ impl<T> PreWeave<T> {
         }
     }
 }
-
-pub enum Instruction {
-
-}
-
-pub type Weave = PreWeave<()>;

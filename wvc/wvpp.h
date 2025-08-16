@@ -4,6 +4,7 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
 using EntityId = size_t;
@@ -199,8 +200,8 @@ namespace wv
 	static DataComponent GetComponent(EntityId id, std::string_view name)
 	{
 		DataComponent result{};
-		const int fieldCount = GetDataFieldCount(name);
-		for (int i = 0; i < fieldCount; i++)
+		const size_t fieldCount = GetDataFieldCount(name);
+		for (size_t i = 0; i < fieldCount; i++)
 		{
 			WvDataField data = GetDataField(name, i);
 			DataFieldValue field{};
@@ -214,148 +215,210 @@ namespace wv
 
 	namespace shape 
 	{
-		void Connect(size_t source, const std::vector<EntityId>& targets)
+		static void Connect(size_t source, const std::vector<EntityId>& targets)
 		{
 			wv_shape__connect(WV::GetWeave(), source, targets.size(), targets.data());
 		}
 
-		void Hoist(size_t subject, const std::vector<EntityId>& objects)
+		static void Hoist(size_t subject, const std::vector<EntityId>& objects)
 		{
-			wv_shape__connect(WV::GetWeave(), subject, objects.size(), objects.data());
+			wv_shape__hoist(WV::GetWeave(), subject, objects.size(), objects.data());
 		}
 
-		void Lift(const std::vector<EntityId>& arrows)
+		static void Lift(const std::vector<EntityId>& arrows)
 		{
 			wv_shape__lift(WV::GetWeave(), arrows.size(), arrows.data());
 		}
 
-		void Lower(const std::vector<EntityId>& arrows)
+		static void Lower(const std::vector<EntityId>& arrows)
 		{
 			wv_shape__lower(WV::GetWeave(), arrows.size(), arrows.data());
 		}
 
-		void Parent(size_t root, const std::vector<EntityId>& children)
+		static void Parent(size_t root, const std::vector<EntityId>& children)
 		{
 			wv_shape__parent(WV::GetWeave(), root, children.size(), children.data());
 		}
 
-		void Pivot(size_t center, const std::vector<EntityId>& children)
+		static void Pivot(size_t center, const std::vector<EntityId>& children)
 		{
 			wv_shape__pivot(WV::GetWeave(), center, children.size(), children.data());
 		}
 	}
 
 	namespace move {
-		std::vector<EntityId> Arrows(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> Arrows(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__arrows(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> ArrowsIn(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> ArrowsIn(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__arrows_in(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> ArrowsOut(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> ArrowsOut(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__arrows_out(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Deps(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> Deps(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__deps(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Down(EntityId it) {
+		static std::vector<EntityId> Down(EntityId it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__down(WV::GetWeave(), it);
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> DownN(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> DownN(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__down_n(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Marks(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> Marks(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__marks(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Tethers(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> Tethers(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__tethers(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Next(EntityId it) {
+		static std::vector<EntityId> Next(EntityId it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__next(WV::GetWeave(), it);
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> NextN(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> NextN(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__next_n(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Prev(EntityId it) {
+		static std::vector<EntityId> Prev(EntityId it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__prev(WV::GetWeave(), it);
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> PrevN(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> PrevN(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__prev_n(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> ToSource(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> ToSource(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__to_src(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> ToTarget(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> ToTarget(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__to_tgt(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> Up(EntityId it) {
+		static std::vector<EntityId> Up(EntityId it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__up(WV::GetWeave(), it);
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
 		}
 
-		std::vector<EntityId> UpN(const std::vector<EntityId>& it) {
+		static std::vector<EntityId> UpN(const std::vector<EntityId>& it) {
 			std::vector<EntityId> result;
 			auto arr = wv_move__up_n(WV::GetWeave(), it.size(), it.data());
 			result.assign(arr.ptr, arr.ptr + arr.len);
 			return result;
+		}
+	}
+
+	namespace search {
+		struct SearchResult {
+			size_t count;
+			std::vector<EntityId> source;
+			std::vector<EntityId> target;
+		};
+
+		struct SearchResults {
+			std::vector<SearchResult> entries;
+		};
+
+		static std::optional<SearchResult> FindOne(EntityId pattern, EntityId target)
+		{
+			size_t count{ 0 };
+			size_t size{ 0 };
+			auto arr = wv_search__find_one(WV::GetWeave(), pattern, target, &size, &count);
+			if (count == 0) return std::nullopt;
+
+			std::vector<EntityId> unwrapped;
+			unwrapped.assign(arr.ptr, arr.ptr + arr.len);
+
+			SearchResult result;
+			result.count = size;
+			for (int i = 0; i < size * 2; i += 2)
+			{
+				result.source.push_back(unwrapped[i]);
+				result.target.push_back(unwrapped[i + 1]);
+			}
+
+			return std::optional(result);
+		}
+
+		static std::optional<SearchResults> FindAll(EntityId pattern, EntityId target)
+		{
+			size_t count{ 0 };
+			size_t size{ 0 };
+			auto arr = wv_search__find_all(WV::GetWeave(), pattern, target, &size, &count);
+			if (count == 0) return std::nullopt;
+
+			std::vector<EntityId> unwrapped;
+			unwrapped.assign(arr.ptr, arr.ptr + arr.len);
+
+			SearchResults results;
+
+			size_t n = 0;
+			for (int i = 0; i < count; i++)
+			{
+				SearchResult result;
+				result.count = size;
+				for (int j = 0; j < size; j++)
+				{
+					result.source.push_back(unwrapped[n++]);
+					result.target.push_back(unwrapped[n++]);
+				}
+
+				results.entries.push_back(std::move(result));
+			}
+
+			return std::optional(results);
 		}
 	}
 };

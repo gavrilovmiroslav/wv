@@ -64,4 +64,52 @@ int main()
     wv::NewArrow(y, x);
     auto ars = wv::move::Arrows({ x });
     auto tars = wv::move::Arrows(ars);
+
+    // -------------------------------
+
+    auto hp = wv::NewKnot();
+    auto p1 = wv::NewKnot();
+    auto p2 = wv::NewKnot();
+    auto p3 = wv::NewKnot();
+    wv::NewArrow(p1, p2);
+    wv::NewArrow(p1, p3);
+    wv::NewArrow(p2, p3);
+    wv::shape::Hoist(hp, { p1, p2, p3 });
+
+    auto ht = wv::NewKnot();
+    auto t1 = wv::NewKnot();
+    auto t2 = wv::NewKnot();
+    auto t3 = wv::NewKnot();
+    auto t4 = wv::NewKnot();
+    wv::NewArrow(t1, t2);
+    wv::NewArrow(t1, t3);
+    wv::NewArrow(t2, t3);
+    wv::NewArrow(t3, t2);
+    wv::NewArrow(t2, t4);
+    wv::NewArrow(t3, t4);
+    wv::shape::Hoist(ht, { t1, t2, t3, t4 });
+
+    auto matches = wv::search::FindAll(hp, ht);
+    if (matches.has_value())
+    {
+        for(auto& result : matches.value().entries) 
+        {
+            for (int i = 0; i < result.count; i++)
+            {
+                std::cout << " " << i << ": " << result.source[i] << " = " << result.target[i] << std::endl;
+            }
+            std::cout << "" << std::endl;
+        }
+    }
+
+    std::cout << "------------" << std::endl;
+    auto match = wv::search::FindOne(hp, ht);
+    if (match.has_value())
+    {
+        auto result = match.value();
+        for (int i = 0; i < result.count; i++)
+        {
+            std::cout << " " << i << ": " << result.source[i] << " = " << result.target[i] << std::endl;
+        }
+    }
 }

@@ -1,0 +1,1 @@
+C:\Projects\wv\target\debug\wv.lib: C:\Projects\wv\build.rs C:\Projects\wv\src\core.rs C:\Projects\wv\src\ffi.rs C:\Projects\wv\src\lib.rs C:\Projects\wv\src\search.rs C:\Projects\wv\src\shape.rs C:\Projects\wv\src\tests.rs C:\Projects\wv\src\traverse.rs

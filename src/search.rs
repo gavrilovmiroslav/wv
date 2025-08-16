@@ -3,6 +3,7 @@ use multimap::MultiMap;
 use crate::core::{DataValue, EntityId, Weave};
 use crate::traverse::{arrows_in, arrows_out, down, marks};
 
+#[derive(Debug)]
 struct SearchSpace {
     entities: Vec<EntityId>,
     candidates: MultiMap<EntityId, EntityId>,
