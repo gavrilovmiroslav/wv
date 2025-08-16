@@ -3,7 +3,7 @@
 mod tests {
     use crate::core::{DataValue, Weave};
     use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
-    use crate::search::{find_all, find_one};
+    use crate::search::{find_all, find_one, require_component};
     use crate::shape::{annotate, hoist, markup};
 
     #[test]
@@ -198,7 +198,7 @@ mod tests {
         let mut w: Weave = Weave::new();
         // define pattern
         let a = w.new_knot();
-        annotate(&mut w, a, "With", &[ DataValue::String("With".to_string()) ]);
+        require_component(&mut w, a, "With");
 
         let b = w.new_knot();
         let c = w.new_knot();
@@ -238,7 +238,7 @@ mod tests {
         let mut w: Weave = Weave::new();
         // define pattern
         let a = w.new_knot();
-        annotate(&mut w, a, "With", &[ DataValue::String("With".to_string()) ]);
+        require_component(&mut w, a, "With");
 
         let b = w.new_knot();
         let c = w.new_knot();

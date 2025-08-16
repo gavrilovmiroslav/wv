@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use multimap::MultiMap;
 use crate::core::{DataValue, EntityId, Weave};
+use crate::shape::annotate;
 use crate::traverse::{arrows_in, arrows_out, down, marks};
 
 #[derive(Debug)]
@@ -173,6 +174,14 @@ fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: Entit
         entities: in_pattern,
         candidates,
     })
+}
+
+pub fn require_component(wv: &mut Weave, entity: EntityId, name: &str) {
+    annotate(wv, entity, "With", &[ DataValue::String(name.to_string()) ]);
+}
+
+pub fn require_no_component(wv: &mut Weave, entity: EntityId, name: &str) {
+    annotate(wv, entity, "Without", &[ DataValue::String(name.to_string()) ]);
 }
 
 pub fn find_all(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Vec<HashMap<EntityId, EntityId>> {
