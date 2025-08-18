@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::hash::{ Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
