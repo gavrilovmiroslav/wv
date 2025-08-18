@@ -1,29 +1,29 @@
 #include <iostream>
-#include "wv.h"
 #include "wvpp.h"
 
 #define BOOL(b) ((b) ? "true" : "false")
 
 int main()
 {
-    auto a = wv::NewKnot();
-    auto b = wv::NewKnot();
-    auto c = wv::NewArrow(a, b);
+    auto wv = weave::Weave();
+    auto a = wv.NewKnot();
+    auto b = wv.NewKnot();
+    auto c = wv.NewArrow(a, b);
 
-    std::cout << BOOL(wv::IsArrow(c)) << std::endl;
-    std::cout << BOOL(wv::IsMark(c)) << std::endl;
+    std::cout << BOOL(wv.IsArrow(c)) << std::endl;
+    std::cout << BOOL(wv.IsMark(c)) << std::endl;
 
-    wv::ChangeSource(c, c);
+    wv.ChangeSource(c, c);
 
-    std::cout << BOOL(wv::IsArrow(c)) << std::endl;
-    std::cout << BOOL(wv::IsMark(c)) << std::endl;
+    std::cout << BOOL(wv.IsArrow(c)) << std::endl;
+    std::cout << BOOL(wv.IsMark(c)) << std::endl;
 
-    std::cout << wv::IsNil(c) << std::endl;
+    std::cout << wv.IsNil(c) << std::endl;
 
-    wv::DeleteCascade(&c);
-    std::cout << wv::IsNil(c) << std::endl;
+    wv.DeleteCascade(&c);
+    std::cout << wv.IsNil(c) << std::endl;
 
-    wv::DefineData("Test", {
+    wv.DefineData("Test", {
         { "i", Datatype::Int },
         { "b", Datatype::Bool },
         { "s", Datatype::String },
@@ -31,9 +31,9 @@ int main()
         { "z", Datatype::String }
     });
 
-    std::cout << BOOL(wv::HasComponent(c, "Test")) << std::endl;
+    std::cout << BOOL(wv.HasComponent(c, "Test")) << std::endl;
 
-    wv::AddComponent(c, "Test", {
+    wv.AddComponent(c, "Test", {
         new int64_t(13),
         new bool(true),
         (void*)"hello",
@@ -41,8 +41,8 @@ int main()
         (void*)"world"
     });
     
-    std::cout << BOOL(wv::HasComponent(c, "Test")) << std::endl;
-    auto t = wv::GetComponent(c, "Test");
+    std::cout << BOOL(wv.HasComponent(c, "Test")) << std::endl;
+    auto t = wv.GetComponent(c, "Test");
     for (auto& [k, v] : t.values) {
         std::cout << "  - " << k << " = (" << (int)v.datatype << ") " << v.value << std::endl;
     }
@@ -55,41 +55,41 @@ int main()
 
     std::cout << pi << " " << pb << " " << ps << " " << pf << " " << pz << std::endl;
 
-    wv::RemoveComponent(c, "Test");
-    std::cout << BOOL(wv::HasComponent(c, "Test")) << std::endl;
+    wv.RemoveComponent(c, "Test");
+    std::cout << BOOL(wv.HasComponent(c, "Test")) << std::endl;
 
-    auto x = wv::NewKnot();
-    auto y = wv::NewKnot();
-    wv::NewArrow(x, y);
-    wv::NewArrow(y, x);
-    auto ars = wv::move::Arrows({ x });
-    auto tars = wv::move::Arrows(ars);
+    auto x = wv.NewKnot();
+    auto y = wv.NewKnot();
+    wv.NewArrow(x, y);
+    wv.NewArrow(y, x);
+    auto ars = wv.GetMoveLibrary().Arrows({ x });
+    auto tars = wv.GetMoveLibrary().Arrows(ars);
 
     // -------------------------------
 
-    auto hp = wv::NewKnot();
-    auto p1 = wv::NewKnot();
-    auto p2 = wv::NewKnot();
-    auto p3 = wv::NewKnot();
-    wv::NewArrow(p1, p2);
-    wv::NewArrow(p1, p3);
-    wv::NewArrow(p2, p3);
-    wv::shape::Hoist(hp, { p1, p2, p3 });
+    auto hp = wv.NewKnot();
+    auto p1 = wv.NewKnot();
+    auto p2 = wv.NewKnot();
+    auto p3 = wv.NewKnot();
+    wv.NewArrow(p1, p2);
+    wv.NewArrow(p1, p3);
+    wv.NewArrow(p2, p3);
+    wv.GetShapeLibrary().Hoist(hp, { p1, p2, p3 });
 
-    auto ht = wv::NewKnot();
-    auto t1 = wv::NewKnot();
-    auto t2 = wv::NewKnot();
-    auto t3 = wv::NewKnot();
-    auto t4 = wv::NewKnot();
-    wv::NewArrow(t1, t2);
-    wv::NewArrow(t1, t3);
-    wv::NewArrow(t2, t3);
-    wv::NewArrow(t3, t2);
-    wv::NewArrow(t2, t4);
-    wv::NewArrow(t3, t4);
-    wv::shape::Hoist(ht, { t1, t2, t3, t4 });
+    auto ht = wv.NewKnot();
+    auto t1 = wv.NewKnot();
+    auto t2 = wv.NewKnot();
+    auto t3 = wv.NewKnot();
+    auto t4 = wv.NewKnot();
+    wv.NewArrow(t1, t2);
+    wv.NewArrow(t1, t3);
+    wv.NewArrow(t2, t3);
+    wv.NewArrow(t3, t2);
+    wv.NewArrow(t2, t4);
+    wv.NewArrow(t3, t4);
+    wv.GetShapeLibrary().Hoist(ht, {t1, t2, t3, t4});
 
-    auto matches = wv::search::FindAll(hp, ht);
+    auto matches = wv.GetSearchLibrary().FindAll(hp, ht);
     if (matches.has_value())
     {
         for(auto& result : matches.value().entries) 
@@ -103,7 +103,7 @@ int main()
     }
 
     std::cout << "------------" << std::endl;
-    auto match = wv::search::FindOne(hp, ht);
+    auto match = wv.GetSearchLibrary().FindOne(hp, ht);
     if (match.has_value())
     {
         auto result = match.value();
