@@ -66,7 +66,6 @@ namespace weave
 	class WeaveLibraryShape : IWeaveLibrary
 	{
 	public:
-
 		WeaveLibraryShape(::Weave* weave) : IWeaveLibrary(weave)
 		{
 		}
@@ -291,175 +290,176 @@ namespace weave
 		}
 	};
 
-	class Weave {
-		public:
-			Weave()
-				: m_Weave{ wv_new_weave() }
+	class Weave
+	{
+	public:
+		Weave()
+			: m_Weave{ wv_new_weave() }
+		{
+		}
+
+		~Weave()
+		{
+			wv_free_weave(m_Weave);
+		}
+
+		inline ::Weave* GetWeave() const
+		{
+			return m_Weave;
+		}
+
+		EntityId NewKnot()
+		{
+			return wv_new_knot(GetWeave());
+		}
+
+		EntityId NewArrow(EntityId src, EntityId tgt)
+		{
+			return wv_new_arrow(GetWeave(), src, tgt);
+		}
+
+		EntityId NewMark(EntityId tgt)
+		{
+			return wv_new_mark(GetWeave(), tgt);
+		}
+
+		EntityId NewTether(EntityId src)
+		{
+			return wv_new_tether(GetWeave(), src);
+		}
+
+		void ChangeSource(EntityId id, EntityId newSrc)
+		{
+			wv_change_src(GetWeave(), id, newSrc);
+		}
+
+		void ChangeTarget(EntityId id, EntityId newTgt)
+		{
+			wv_change_tgt(GetWeave(), id, newTgt);
+		}
+
+		void ChangeEnds(EntityId id, EntityId newSrc, EntityId newTgt)
+		{
+			wv_change_ends(GetWeave(), id, newSrc, newTgt);
+		}
+
+		bool IsNil(EntityId id)
+		{
+			return wv_is_nil(GetWeave(), id);
+		}
+
+		bool IsValid(EntityId id)
+		{
+			return wv_is_valid(GetWeave(), id);
+		}
+
+		bool IsKnot(EntityId id)
+		{
+			return wv_is_knot(GetWeave(), id);
+		}
+
+		bool IsArrow(EntityId id)
+		{
+			return wv_is_arrow(GetWeave(), id);
+		}
+
+		bool IsMark(EntityId id)
+		{
+			return wv_is_mark(GetWeave(), id);
+		}
+
+		bool IsTether(EntityId id)
+		{
+			return wv_is_tether(GetWeave(), id);
+		}
+
+		void DeleteCascade(EntityId* id)
+		{
+			wv_delete_cascade(GetWeave(), id);
+		}
+
+		void DeleteOrphan(EntityId* id)
+		{
+			wv_delete_orphan(GetWeave(), id);
+		}
+
+		bool DefineData(std::string_view name, std::initializer_list<WvDataField> fields)
+		{
+			return wv_def_data(GetWeave(), name.data(), fields.begin(), fields.size());
+		}
+
+		DataId GetDataId(std::string_view name)
+		{
+			return wv_get_data_id(GetWeave(), name.data());
+		}
+
+		size_t GetDataFieldCount(std::string_view name)
+		{
+			return wv_get_data_field_count(GetWeave(), name.data());
+		}
+
+		WvDataField GetDataField(std::string_view name, size_t index)
+		{
+			return wv_get_data_field(GetWeave(), name.data(), index);
+		}
+
+		const void* GetComponentField(EntityId id, std::string_view name, size_t index)
+		{
+			return wv_get_component_field(GetWeave(), id, name.data(), index);
+		}
+
+		void AddComponent(EntityId id, std::string_view name, std::initializer_list<void*> fields)
+		{
+			wv_add_component(GetWeave(), id, name.data(), fields.begin());
+		}
+
+		bool HasComponent(EntityId id, std::string_view name)
+		{
+			return wv_has_component(GetWeave(), id, name.data());
+		}
+
+		void RemoveComponent(EntityId id, std::string_view name)
+		{
+			return wv_remove_component(GetWeave(), id, name.data());
+		}
+
+		DataComponent GetComponent(EntityId id, std::string_view name)
+		{
+			DataComponent result{};
+			const size_t fieldCount = GetDataFieldCount(name);
+			for (size_t i = 0; i < fieldCount; i++)
 			{
+				WvDataField data = GetDataField(name, i);
+				DataFieldValue field{};
+				field.datatype = data.datatype;
+				field.value = GetComponentField(id, name, i);
+				result.values[data.name] = field;
 			}
 
-			~Weave()
-			{
-				wv_free_weave(m_Weave);
-			}
+			return result;
+		}
 
-			inline ::Weave* GetWeave() const
-			{
-				return m_Weave;
-			}
+		WeaveLibraryShape GetShapeLibrary()
+		{
+			return WeaveLibraryShape(GetWeave());
+		}
 
-			EntityId NewKnot()
-			{
-				return wv_new_knot(GetWeave());
-			}
+		WeaveLibraryMove GetMoveLibrary()
+		{
+			return WeaveLibraryMove(GetWeave());
+		}
 
-			EntityId NewArrow(EntityId src, EntityId tgt)
-			{
-				return wv_new_arrow(GetWeave(), src, tgt);
-			}
+		WeaveLibrarySearch GetSearchLibrary()
+		{
+			return WeaveLibrarySearch(GetWeave());
+		}
 
-			EntityId NewMark(EntityId tgt)
-			{
-				return wv_new_mark(GetWeave(), tgt);
-			}
-
-			EntityId NewTether(EntityId src)
-			{
-				return wv_new_tether(GetWeave(), src);
-			}
-
-			void ChangeSource(EntityId id, EntityId newSrc)
-			{
-				wv_change_src(GetWeave(), id, newSrc);
-			}
-
-			void ChangeTarget(EntityId id, EntityId newTgt)
-			{
-				wv_change_tgt(GetWeave(), id, newTgt);
-			}
-
-			void ChangeEnds(EntityId id, EntityId newSrc, EntityId newTgt)
-			{
-				wv_change_ends(GetWeave(), id, newSrc, newTgt);
-			}
-
-			bool IsNil(EntityId id)
-			{
-				return wv_is_nil(GetWeave(), id);
-			}
-
-			bool IsValid(EntityId id)
-			{
-				return wv_is_valid(GetWeave(), id);
-			}
-
-			bool IsKnot(EntityId id)
-			{
-				return wv_is_knot(GetWeave(), id);
-			}
-
-			bool IsArrow(EntityId id)
-			{
-				return wv_is_arrow(GetWeave(), id);
-			}
-
-			bool IsMark(EntityId id)
-			{
-				return wv_is_mark(GetWeave(), id);
-			}
-
-			bool IsTether(EntityId id)
-			{
-				return wv_is_tether(GetWeave(), id);
-			}
-
-			void DeleteCascade(EntityId* id)
-			{
-				wv_delete_cascade(GetWeave(), id);
-			}
-
-			void DeleteOrphan(EntityId* id)
-			{
-				wv_delete_orphan(GetWeave(), id);
-			}
-
-			bool DefineData(std::string_view name, std::initializer_list<WvDataField> fields)
-			{
-				return wv_def_data(GetWeave(), name.data(), fields.begin(), fields.size());
-			}
-
-			DataId GetDataId(std::string_view name)
-			{
-				return wv_get_data_id(GetWeave(), name.data());
-			}
-
-			size_t GetDataFieldCount(std::string_view name)
-			{
-				return wv_get_data_field_count(GetWeave(), name.data());
-			}
-
-			WvDataField GetDataField(std::string_view name, size_t index)
-			{
-				return wv_get_data_field(GetWeave(), name.data(), index);
-			}
-
-			const void* GetComponentField(EntityId id, std::string_view name, size_t index)
-			{
-				return wv_get_component_field(GetWeave(), id, name.data(), index);
-			}
-
-			void AddComponent(EntityId id, std::string_view name, std::initializer_list<void*> fields)
-			{
-				wv_add_component(GetWeave(), id, name.data(), fields.begin());
-			}
-
-			bool HasComponent(EntityId id, std::string_view name)
-			{
-				return wv_has_component(GetWeave(), id, name.data());
-			}
-
-			void RemoveComponent(EntityId id, std::string_view name)
-			{
-				return wv_remove_component(GetWeave(), id, name.data());
-			}
-
-			DataComponent GetComponent(EntityId id, std::string_view name)
-			{
-				DataComponent result{};
-				const size_t fieldCount = GetDataFieldCount(name);
-				for (size_t i = 0; i < fieldCount; i++)
-				{
-					WvDataField data = GetDataField(name, i);
-					DataFieldValue field{};
-					field.datatype = data.datatype;
-					field.value = GetComponentField(id, name, i);
-					result.values[data.name] = field;
-				}
-
-				return result;
-			}
-
-			WeaveLibraryShape GetShapeLibrary()
-			{
-				return WeaveLibraryShape(GetWeave());
-			}
-
-			WeaveLibraryMove GetMoveLibrary()
-			{
-				return WeaveLibraryMove(GetWeave());
-			}
-
-			WeaveLibrarySearch GetSearchLibrary()
-			{
-				return WeaveLibrarySearch(GetWeave());
-			}
-
-		private:
-			::Weave* m_Weave;
-		};
+	private:
+		::Weave* m_Weave;
+	};
 
 	Weave new_weave()
-		{
-			return Weave();
-		}
+	{
+		return Weave();
+	}
 }
