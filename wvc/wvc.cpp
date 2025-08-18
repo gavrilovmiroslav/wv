@@ -5,7 +5,7 @@
 
 int main()
 {
-    auto wv = weave::new_weave();
+    auto wv = weave::Weave();
     auto a = wv.NewKnot();
     auto b = wv.NewKnot();
     auto c = wv.NewArrow(a, b);

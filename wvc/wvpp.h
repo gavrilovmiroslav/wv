@@ -457,9 +457,4 @@ namespace weave
 	private:
 		::Weave* m_Weave;
 	};
-
-	Weave new_weave()
-	{
-		return Weave();
-	}
 }
