@@ -1,13 +1,38 @@
 use std::collections::{HashMap, HashSet};
 use multimap::MultiMap;
-use crate::core::{DataValue, EntityId, Weave};
-use crate::shape::annotate;
+use crate::core::{DataField, DataValue, EntityId, Weave};
+use crate::shape::{annotate, get_annotation};
 use crate::traverse::{arrows_in, arrows_out, down, marks};
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Diff {
+    Spawn(EntityId, (EntityId, EntityId)),
+    ChangeSource(EntityId, EntityId),
+    ChangeTarget(EntityId, EntityId),
+    Destroy(EntityId),
+    ChangeData(EntityId, String, Vec<DataField>),
+}
 
 #[derive(Debug)]
 struct SearchSpace {
     entities: Vec<EntityId>,
     candidates: MultiMap<EntityId, EntityId>,
+}
+
+
+pub fn diff(wv: &Weave, hoisted_pattern: EntityId, hoisted_goal: EntityId) -> Vec<Diff> {
+    let mut result = vec![];
+    let goal = down(wv, hoisted_goal);
+    for motif in &goal {
+        let ann = get_annotation(wv, *motif, "Identity");
+        if let Some(ann) = ann {
+            // change?
+        } else {
+            // spawn?
+        }
+    }
+
+    result
 }
 
 fn generate_single_product(wv: &Weave, search_space: &SearchSpace) -> Option<HashMap<EntityId, EntityId>> {

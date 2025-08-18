@@ -63,6 +63,7 @@ impl Weave {
             data: Default::default(),
         };
 
+        wv.def_datatype("Identity", &[ DataField{ name: "id".to_string(), datatype: Datatype::Int }]);
         wv.def_datatype("With", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
         wv.def_datatype("Without", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
 
