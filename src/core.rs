@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{DefaultHasher, Hash, Hasher};
+use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
 pub type EntityId = usize;
@@ -38,8 +39,9 @@ pub struct Weave {
     pub(crate) targets: Vec<usize>,
     pub(crate) source_ids: HashMap<usize, HashSet<usize>>,
     pub(crate) target_ids: HashMap<usize, HashSet<usize>>,
-
+    pub(crate) type_names: HashMap<DatatypeId, String>,
     pub(crate) types: HashMap<DatatypeId, Vec<DataField>>,
+    pub(crate) archetypes: MultiMap<EntityId, DatatypeId>,
     pub(crate) data: HashMap<DatatypeId, HashMap<usize, Vec<u8>>>,
 }
 
@@ -55,6 +57,8 @@ impl Weave {
             source_ids: Default::default(),
             target_ids: Default::default(),
             types: Default::default(),
+            type_names: Default::default(),
+            archetypes: Default::default(),
             data: Default::default(),
         };
 
@@ -333,6 +337,8 @@ impl Weave {
     pub fn def_datatype(&mut self, name: &str, datatype: &[DataField]) -> DatatypeId {
         let id = Self::get_type_id(name);
         self.types.entry(id).or_insert(datatype.to_vec());
+        self.type_names.entry(id).or_insert(name.to_string());
+
         id
     }
 
@@ -361,16 +367,21 @@ impl Weave {
         self.types[&id][index].clone()
     }
 
-    pub fn add_component(&mut self, entity: EntityId, name: &str, fields: &[DataValue]) {
+    pub(crate) fn add_component_raw(&mut self, entity: EntityId, name: &str, dat: &[u8]) {
         let id = Self::get_type_id(name);
 
         if !self.data.contains_key(&id) {
             self.data.insert(id, Default::default());
+            self.archetypes.insert(entity, id);
         }
 
         self.data.get_mut(&id).unwrap().entry(entity)
-            .or_insert(serde_json::to_string(&fields)
-                .expect("Fields can't stringify").as_bytes().to_vec());
+            .or_insert(dat.to_vec());
+    }
+
+    pub fn add_component(&mut self, entity: EntityId, name: &str, fields: &[DataValue]) {
+        self.add_component_raw(entity, name, serde_json::to_string(&fields)
+            .expect("Fields can't stringify").as_bytes());
     }
 
     pub fn has_component(&self, entity: EntityId, name: &str) -> bool {
@@ -397,6 +408,19 @@ impl Weave {
         let id = Self::get_type_id(name);
         if let Some(attachments) = self.data.get_mut(&id) {
             attachments.remove(&entity);
+            if let Some(archetypes) = self.archetypes.get_vec_mut(&entity) {
+                if let Some(index) = archetypes.iter().position(|e| *e == id) {
+                    archetypes.remove(index);
+                }
+            }
+        }
+    }
+
+    pub(crate) fn get_archetype(&self, entity: EntityId) -> Vec<DatatypeId> {
+        if let Some(archetypes) = self.archetypes.get_vec(&entity) {
+            archetypes.clone()
+        } else {
+            vec![]
         }
     }
 }

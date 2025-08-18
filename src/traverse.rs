@@ -13,6 +13,18 @@ pub fn primary(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     h.into_iter().collect()
 }
 
+pub fn virtuals(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
+    let mut h: HashSet<EntityId> = HashSet::new();
+    for i in it {
+        let di = wv.get_dependents(*i)
+            .iter().filter(|&e| wv.is_mark(*e) || wv.is_tether(*e))
+            .cloned().collect::<Vec<_>>();
+        h.extend(&di);
+    }
+
+    h.into_iter().collect()
+}
+
 pub fn deps(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     let mut h: HashSet<EntityId> = HashSet::new();
     for i in it {
