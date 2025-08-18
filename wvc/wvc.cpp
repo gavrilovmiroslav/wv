@@ -1,12 +1,11 @@
 #include <iostream>
-#include "wv.h"
 #include "wvpp.h"
 
 #define BOOL(b) ((b) ? "true" : "false")
 
 int main()
 {
-    auto wv = new_weave();
+    auto wv = weave::new_weave();
     auto a = wv.NewKnot();
     auto b = wv.NewKnot();
     auto c = wv.NewArrow(a, b);
@@ -63,8 +62,8 @@ int main()
     auto y = wv.NewKnot();
     wv.NewArrow(x, y);
     wv.NewArrow(y, x);
-    auto ars = wv.GetMove().Arrows({ x });
-    auto tars = wv.GetMove().Arrows(ars);
+    auto ars = wv.GetMoveLibrary().Arrows({ x });
+    auto tars = wv.GetMoveLibrary().Arrows(ars);
 
     // -------------------------------
 
@@ -75,7 +74,7 @@ int main()
     wv.NewArrow(p1, p2);
     wv.NewArrow(p1, p3);
     wv.NewArrow(p2, p3);
-    wv.GetShape().Hoist(hp, { p1, p2, p3 });
+    wv.GetShapeLibrary().Hoist(hp, { p1, p2, p3 });
 
     auto ht = wv.NewKnot();
     auto t1 = wv.NewKnot();
@@ -88,9 +87,9 @@ int main()
     wv.NewArrow(t3, t2);
     wv.NewArrow(t2, t4);
     wv.NewArrow(t3, t4);
-    wv.GetShape().Hoist(ht, {t1, t2, t3, t4});
+    wv.GetShapeLibrary().Hoist(ht, {t1, t2, t3, t4});
 
-    auto matches = wv.GetSearch().FindAll(hp, ht);
+    auto matches = wv.GetSearchLibrary().FindAll(hp, ht);
     if (matches.has_value())
     {
         for(auto& result : matches.value().entries) 
@@ -104,7 +103,7 @@ int main()
     }
 
     std::cout << "------------" << std::endl;
-    auto match = wv.GetSearch().FindOne(hp, ht);
+    auto match = wv.GetSearchLibrary().FindOne(hp, ht);
     if (match.has_value())
     {
         auto result = match.value();
