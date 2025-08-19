@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use multimap::MultiMap;
 use crate::core::{DataField, DataValue, EntityId, Weave};
-use crate::shape::{annotate, get_annotation};
+use crate::shape::{annotate};
 use crate::traverse::{arrows_in, arrows_out, down, marks};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -14,28 +14,12 @@ pub enum Diff {
 }
 
 #[derive(Debug)]
-struct SearchSpace {
+pub(crate) struct SearchSpace {
     entities: Vec<EntityId>,
     candidates: MultiMap<EntityId, EntityId>,
 }
 
-
-pub fn diff(wv: &Weave, hoisted_pattern: EntityId, hoisted_goal: EntityId) -> Vec<Diff> {
-    let mut result = vec![];
-    let goal = down(wv, hoisted_goal);
-    for motif in &goal {
-        let ann = get_annotation(wv, *motif, "Identity");
-        if let Some(ann) = ann {
-            // change?
-        } else {
-            // spawn?
-        }
-    }
-
-    result
-}
-
-fn generate_single_product(wv: &Weave, search_space: &SearchSpace) -> Option<HashMap<EntityId, EntityId>> {
+pub(crate) fn generate_single_product(wv: &Weave, search_space: &SearchSpace, seed: HashMap<EntityId, EntityId>) -> Option<HashMap<EntityId, EntityId>> {
     fn rec_generate_product(wv: &Weave, index: usize,
                             search_space: &SearchSpace,
                             used: &mut Vec<EntityId>,
@@ -67,10 +51,11 @@ fn generate_single_product(wv: &Weave, search_space: &SearchSpace) -> Option<Has
         None
     }
 
-    rec_generate_product(wv, 0, search_space, &mut vec![], &mut HashMap::new())
+    let mut seed = seed;
+    rec_generate_product(wv, 0, search_space, &mut vec![], &mut seed)
 }
 
-fn generate_products(wv: &Weave, search_space: &SearchSpace) -> Vec<HashMap<EntityId, EntityId>> {
+pub(crate) fn generate_products(wv: &Weave, search_space: &SearchSpace, seed: HashMap<EntityId, EntityId>) -> Vec<HashMap<EntityId, EntityId>> {
     fn rec_generate_products(wv: &Weave, index: usize,
                              search_space: &SearchSpace,
                              used: &mut Vec<EntityId>,
@@ -79,33 +64,36 @@ fn generate_products(wv: &Weave, search_space: &SearchSpace) -> Vec<HashMap<Enti
 
         let next = search_space.entities[index];
 
-        for candidate in search_space.candidates.get_vec(&next).unwrap() {
-            if used.contains(candidate) {
-                continue;
-            }
-
-            used.push(*candidate);
-            collected.insert(next, *candidate);
-            if index < search_space.entities.len() - 1 {
-                rec_generate_products(wv, index + 1, search_space, used, collected, ret);
-            } else {
-                if check_solution(wv, &collected) {
-                    ret.push(collected.clone());
+        if let Some(v) = search_space.candidates.get_vec(&next) {
+            for candidate in v {
+                if used.contains(candidate) {
+                    continue;
                 }
-            }
 
-            collected.remove(&next);
-            used.remove(used.iter().position(|e| e == candidate).unwrap());
+                used.push(*candidate);
+                collected.insert(next, *candidate);
+                if index < search_space.entities.len() - 1 {
+                    rec_generate_products(wv, index + 1, search_space, used, collected, ret);
+                } else {
+                    if check_solution(wv, &collected) {
+                        ret.push(collected.clone());
+                    }
+                }
+
+                collected.remove(&next);
+                used.remove(used.iter().position(|e| e == candidate).unwrap());
+            }
         }
     }
 
     let mut ret = Vec::new();
-    rec_generate_products(wv, 0, search_space, &mut vec![], &mut HashMap::new(), &mut ret);
+    let mut seed = seed;
+    rec_generate_products(wv, 0, search_space, &mut vec![], &mut seed, &mut ret);
 
     ret
 }
 
-fn check_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
+pub(crate) fn check_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
     let keys = solution.keys().collect::<HashSet<_>>();
     for (node, _) in solution {
         for dep in wv.get_dependents(*node) {
@@ -126,13 +114,18 @@ fn check_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
     true
 }
 
-fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Option<SearchSpace> {
+pub(crate) fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId, seed: &HashMap<EntityId, EntityId>) -> Option<SearchSpace> {
     fn get_component_name<'s>(wv: &Weave, e: EntityId) -> String {
         if let DataValue::String(s) = wv.get_component(e, "With").first().unwrap() {
             s.clone()
         } else {
             panic!("Component name isn't a string!");
         }
+    }
+
+    let mut seed_vals: HashMap<EntityId, EntityId> = HashMap::new();
+    for (k, v) in seed {
+        seed_vals.insert(*v, *k);
     }
 
     let mut in_pattern = down(wv, hoist_pattern);
@@ -160,6 +153,11 @@ fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: Entit
     }
 
     for entity in &in_target {
+        if seed_vals.contains_key(&entity) {
+            candidates.insert(seed_vals.get(&entity).unwrap().clone(), *entity);
+            continue;
+        }
+
         let mut has_candidates = false;
         let in_degree = arrows_in(wv, &[ *entity ]).len();
         let out_degree = arrows_out(wv, &[ *entity ]).len();
@@ -179,8 +177,10 @@ fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: Entit
                     }
                 }
 
-                candidates.insert(candidate, *entity);
-                has_candidates = true;
+                if !seed.contains_key(&candidate) {
+                    candidates.insert(candidate, *entity);
+                    has_candidates = true;
+                }
             }
         }
 
@@ -189,11 +189,13 @@ fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_target: Entit
         }
     }
 
-    in_pattern.sort_by(|a, b| {
-        let za = candidates.get_vec(a).unwrap().len();
-        let zb = candidates.get_vec(b).unwrap().len();
-        za.cmp(&zb)
-    });
+    if candidates.len() >= in_pattern.len() {
+        in_pattern.sort_by(|a, b| {
+            let za = candidates.get_vec(a).unwrap().len();
+            let zb = candidates.get_vec(b).unwrap().len();
+            za.cmp(&zb)
+        });
+    }
 
     Some(SearchSpace {
         entities: in_pattern,
@@ -210,16 +212,18 @@ pub fn require_no_component(wv: &mut Weave, entity: EntityId, name: &str) {
 }
 
 pub fn find_all(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Vec<HashMap<EntityId, EntityId>> {
-    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target) {
-        generate_products(wv, &search_space)
+    let seed = HashMap::default();
+    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target, &seed) {
+        generate_products(wv, &search_space, seed)
     } else {
         vec![]
     }
 }
 
 pub fn find_one(wv: &Weave, hoist_pattern: EntityId, hoist_target: EntityId) -> Option<HashMap<EntityId, EntityId>> {
-    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target) {
-        generate_single_product(wv, &search_space)
+    let seed = HashMap::default();
+    if let Some(search_space) = prepare_search_space(wv, hoist_pattern, hoist_target, &seed) {
+        generate_single_product(wv, &search_space, seed)
     } else {
         None
     }
