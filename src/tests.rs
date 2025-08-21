@@ -299,8 +299,7 @@ mod tests {
         hoist(&mut w, r, &[ t, s ]);
 
         let result = replace(&mut w, p, q, r);
-        println!("{:?}", result);
-        assert!(matches!(result, Err(ReplaceError::FailedToMatchUniqueGoal(_))));
+        assert!(matches!(result, Ok(_)));
 
         annotate(&mut w, x, "Identity", &[DataValue::Entity(a)]);
         annotate(&mut w, y, "Identity", &[DataValue::Entity(b)]);

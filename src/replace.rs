@@ -183,7 +183,15 @@ pub fn replace(wv: &mut Weave,
                 wv.change_ends(func.unwrap(), func_src.unwrap(), func_tgt.unwrap());
             }
 
-            
+            if let Some(nones) = gt.get_vec(&None) {
+                for none in nones {
+                    if let Some(e) = none {
+                        println!("DELETE {:?}", e);
+                        wv.delete_cascade(*e);
+                    }
+                }
+            }
+
             return Ok(gt);
         }
 
