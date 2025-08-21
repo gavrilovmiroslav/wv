@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use multimap::MultiMap;
 use crate::core::{DataField, DataValue, EntityId, Weave};
@@ -15,8 +16,8 @@ pub enum Diff {
 
 #[derive(Debug)]
 pub(crate) struct SearchSpace {
-    entities: Vec<EntityId>,
-    candidates: MultiMap<EntityId, EntityId>,
+    pub(crate) entities: Vec<EntityId>,
+    pub(crate) candidates: MultiMap<EntityId, EntityId>,
 }
 
 pub(crate) fn generate_single_product(wv: &Weave, search_space: &SearchSpace, seed: HashMap<EntityId, EntityId>) -> Option<HashMap<EntityId, EntityId>> {
@@ -39,7 +40,7 @@ pub(crate) fn generate_single_product(wv: &Weave, search_space: &SearchSpace, se
                     return Some(res);
                 }
             } else {
-                if check_solution(wv, &collected) {
+                if check_search_solution(wv, &collected) {
                     return Some(collected.clone());
                 }
             }
@@ -75,7 +76,7 @@ pub(crate) fn generate_products(wv: &Weave, search_space: &SearchSpace, seed: Ha
                 if index < search_space.entities.len() - 1 {
                     rec_generate_products(wv, index + 1, search_space, used, collected, ret);
                 } else {
-                    if check_solution(wv, &collected) {
+                    if check_search_solution(wv, &collected) {
                         ret.push(collected.clone());
                     }
                 }
@@ -93,7 +94,7 @@ pub(crate) fn generate_products(wv: &Weave, search_space: &SearchSpace, seed: Ha
     ret
 }
 
-pub(crate) fn check_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
+pub(crate) fn check_search_solution(wv: &Weave, solution: &HashMap<EntityId, EntityId>) -> bool {
     let keys = solution.keys().collect::<HashSet<_>>();
     for (node, _) in solution {
         for dep in wv.get_dependents(*node) {
@@ -191,6 +192,10 @@ pub(crate) fn prepare_search_space(wv: &Weave, hoist_pattern: EntityId, hoist_ta
 
     if candidates.len() >= in_pattern.len() {
         in_pattern.sort_by(|a, b| {
+            if candidates.get_vec(a).is_none() || candidates.get_vec(b).is_none() {
+                return Ordering::Equal;
+            }
+
             let za = candidates.get_vec(a).unwrap().len();
             let zb = candidates.get_vec(b).unwrap().len();
             za.cmp(&zb)

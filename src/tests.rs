@@ -319,14 +319,20 @@ mod tests {
 
         let a = w.new_knot();
         let b = w.new_knot();
+        let c = w.new_knot();
         w.new_arrow(a, b);
+        w.new_arrow(b, c);
         let p = w.new_knot();
-        hoist(&mut w, p, &[ a, b ]);
+        hoist(&mut w, p, &[ a, b, c ]);
 
         let x = w.new_knot();
         annotate(&mut w, x, "Identity", &[ DataValue::Int(a as i64) ]);
+        let y = w.new_knot();
+        annotate(&mut w, y, "Identity", &[ DataValue::Int(b as i64) ]);
+        let z = w.new_knot();
+        w.new_arrow(y, z);
         let q = w.new_knot();
-        hoist(&mut w, q, &[ x ]);
+        hoist(&mut w, q, &[ x, y, z ]);
 
         let t = w.new_knot();
         let s = w.new_knot();
