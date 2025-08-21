@@ -172,6 +172,7 @@ extern "C" fn wv_add_component(wv: &mut Weave, entity: usize, name: *const c_cha
     for i in 0..count {
         let df = wv.get_datatype_field(cstr, i);
         let value = match df.datatype {
+            Datatype::Entity => DataValue::Entity(unsafe { *(fields[i] as *const usize).as_ref().unwrap() }),
             Datatype::Int => DataValue::Int(unsafe { *(fields[i] as *const i64).as_ref().unwrap() }),
             Datatype::Float => DataValue::Float(unsafe { *(fields[i] as *const f64).as_ref().unwrap() }),
             Datatype::Bool => DataValue::Bool(unsafe { *(fields[i] as *const bool).as_ref().unwrap() }),
@@ -196,6 +197,7 @@ extern "C" fn wv_get_component_field(wv: &Weave, entity: usize, name: *const c_c
     let cstr = unsafe { CStr::from_ptr(name) }.to_str().expect("CString to_str failed");
     let v = (&*wv).get_component(entity, cstr);
     match &v[index] {
+        DataValue::Entity(e) => e as *const _ as *const c_void,
         DataValue::Int(i) => i as *const _ as *const c_void,
         DataValue::Float(f) => f as *const _ as *const c_void,
         DataValue::Bool(b) => b as *const _ as *const c_void,

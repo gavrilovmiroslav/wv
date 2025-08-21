@@ -10,6 +10,7 @@ pub type DatatypeId = u64;
 #[repr(C)]
 #[derive(Debug, Clone, PartialOrd, PartialEq)]
 pub enum Datatype {
+    Entity,
     Int,
     Float,
     Bool,
@@ -20,6 +21,7 @@ pub enum Datatype {
 #[derive(Debug, Clone, PartialOrd, PartialEq)]
 #[derive(Serialize, Deserialize)]
 pub enum DataValue {
+    Entity(EntityId),
     Int(i64),
     Float(f64),
     Bool(bool),
@@ -63,7 +65,7 @@ impl Weave {
             data: Default::default(),
         };
 
-        wv.def_datatype("Identity", &[ DataField{ name: "id".to_string(), datatype: Datatype::Int }]);
+        wv.def_datatype("Identity", &[ DataField{ name: "id".to_string(), datatype: Datatype::Entity }]);
         wv.def_datatype("With", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
         wv.def_datatype("Without", &[ DataField{ name: "name".to_string(), datatype: Datatype::String }]);
 

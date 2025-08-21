@@ -1,7 +1,8 @@
 use std::cmp::Ordering;
 use std::collections::{HashMap};
+use multimap::MultiMap;
 use crate::core::{DataValue, EntityId, Weave};
-use crate::search::{prepare_search_space, SearchSpace};
+use crate::search::{find_one, prepare_search_space, SearchSpace};
 use crate::shape::get_annotation;
 use crate::traverse::down;
 
@@ -33,7 +34,7 @@ pub(crate) fn generate_incomplete_products(wv: &Weave, search_space: &SearchSpac
                 if index < search_space.entities.len() - 1 {
                     rec_generate_incomplete_products(wv, index + 1, seed, search_space, used, collected, ret);
                 } else {
-                    //println!("COMPLETE {:?}", collected);
+                    println!("COMPLETE {:?}", collected);
                     if check_incomplete_solution(wv, &collected) {
                         ret.push(collected.clone());
                     }
@@ -82,16 +83,16 @@ pub(crate) fn generate_incomplete_products(wv: &Weave, search_space: &SearchSpac
 }
 
 pub(crate) fn check_incomplete_solution(wv: &Weave, solution: &HashMap<EntityId, Option<EntityId>>) -> bool {
-    //println!("  CHECKING {:?}", solution);
+    println!("  CHECKING {:?}", solution);
     for (node, cand) in solution {
         if let Some(cand) = cand {
             let (ls, lt) = (wv.src(*node), wv.tgt(*node));
             let (rs, rt) = (wv.src(*cand), wv.tgt(*cand));
 
-            //println!("    P: {} = {} -> {}", node, ls, lt);
-            //println!("    G: {} = {} -> {}", cand, rs, rt);
+            println!("    P: {} = {} -> {}", node, ls, lt);
+            println!("    G: {} = {} -> {}", cand, rs, rt);
             let (candl, candr) = (solution.get(&ls), solution.get(&lt));
-            //println!("    D: {} = {:?} -> {:?}", cand, candl, candr);
+            println!("    D: {} = {:?} -> {:?}", cand, candl, candr);
             if candl.is_none() || candr.is_none()
             {
                 return false;
@@ -122,17 +123,17 @@ pub(crate) fn get_match_mapping(wv: &Weave, hoisted_pattern: EntityId, hoisted_g
     for motif in &goal {
         let ann = get_annotation(wv, *motif, "Identity");
         if let Some(ann) = ann {
-            if let DataValue::Int(eid) = wv.get_component(ann, "Identity").first().unwrap() {
+            if let DataValue::Entity(eid) = wv.get_component(ann, "Identity").first().unwrap() {
                 annotated_identities.insert(*eid as EntityId, *motif);
             }
         }
     }
 
     if let Some(search_space) = prepare_search_space(wv, hoisted_pattern, hoisted_goal, &annotated_identities) {
-//        println!("{:?}", search_space);
-//        println!("{:?}", annotated_identities);
+        println!("{:?}", search_space);
+        println!("{:?}", annotated_identities);
         let prod = generate_incomplete_products(wv, &search_space, annotated_identities);
-//        println!("PROD {:?}", prod);
+        println!("PROD {:?}", prod);
 
         if let Some(r) = prod.first() {
             return Ok(r.clone());
@@ -145,7 +146,7 @@ pub(crate) fn get_match_mapping(wv: &Weave, hoisted_pattern: EntityId, hoisted_g
 pub fn replace(wv: &mut Weave,
                hoisted_pattern: EntityId,
                hoisted_goal: EntityId,
-               hoisted_target: EntityId) -> Result<HashMap<Option<EntityId>, Option<EntityId>>, ReplaceError> {
+               hoisted_target: EntityId) -> Result<MultiMap<Option<EntityId>, Option<EntityId>>, ReplaceError> {
 
     let pattern_to_goal = get_match_mapping(wv, hoisted_pattern, hoisted_goal);
     if let Ok(matching_goal) = pattern_to_goal {
@@ -157,15 +158,15 @@ pub fn replace(wv: &mut Weave,
             .filter(|e| !goal_matched.contains(&&Some(**e)))
             .collect::<Vec<_>>();
 
-        let pattern_to_target =
-            get_match_mapping(wv, hoisted_pattern, hoisted_target);
+        let pattern_to_target = find_one(wv, hoisted_pattern, hoisted_target);
 
         println!("PT {:?}", pattern_to_target);
-        if let Ok(matching_target) = pattern_to_target {
+
+        if let Some(matching_target) = pattern_to_target {
             println!("2. PATTERN <-> TARGET: {:?}", matching_target);
-            let mut gt = HashMap::new();
+            let mut gt: MultiMap<Option<EntityId>, Option<EntityId>> = MultiMap::new();
             for (p, g) in &matching_goal {
-                gt.insert(*g, matching_target.get(p).unwrap().clone());
+                gt.insert(*g, matching_target.get(p).cloned());
             }
 
             for new_entity in new_entities {
@@ -174,15 +175,15 @@ pub fn replace(wv: &mut Weave,
             }
 
             for goal in goal_entities {
-                let (goal_src, goal_tgt) =
-                    (wv.src(goal), wv.tgt(goal));
-
+                let (goal_src, goal_tgt) = (wv.src(goal), wv.tgt(goal));
                 let func = *gt.get(&Some(goal)).unwrap();
                 let (func_src, func_tgt) =
                     (*gt.get(&Some(goal_src)).unwrap(), *gt.get(&Some(goal_tgt)).unwrap());
 
                 wv.change_ends(func.unwrap(), func_src.unwrap(), func_tgt.unwrap());
             }
+
+            
             return Ok(gt);
         }
 

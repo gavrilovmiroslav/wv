@@ -299,10 +299,11 @@ mod tests {
         hoist(&mut w, r, &[ t, s ]);
 
         let result = replace(&mut w, p, q, r);
+        println!("{:?}", result);
         assert!(matches!(result, Err(ReplaceError::FailedToMatchUniqueGoal(_))));
 
-        annotate(&mut w, x, "Identity", &[DataValue::Int(a as i64)]);
-        annotate(&mut w, y, "Identity", &[DataValue::Int(b as i64)]);
+        annotate(&mut w, x, "Identity", &[DataValue::Entity(a)]);
+        annotate(&mut w, y, "Identity", &[DataValue::Entity(b)]);
 
         let result = replace(&mut w, p, q, r);
         assert!(matches!(result, Ok(_)));
@@ -326,9 +327,9 @@ mod tests {
         hoist(&mut w, p, &[ a, b, c ]);
 
         let x = w.new_knot();
-        annotate(&mut w, x, "Identity", &[ DataValue::Int(a as i64) ]);
+        annotate(&mut w, x, "Identity", &[ DataValue::Entity(a) ]);
         let y = w.new_knot();
-        annotate(&mut w, y, "Identity", &[ DataValue::Int(b as i64) ]);
+        annotate(&mut w, y, "Identity", &[ DataValue::Entity(b) ]);
         let z = w.new_knot();
         w.new_arrow(y, z);
         let q = w.new_knot();
@@ -336,9 +337,11 @@ mod tests {
 
         let t = w.new_knot();
         let s = w.new_knot();
+        let u = w.new_knot();
         w.new_arrow(t, s);
+        w.new_arrow(s, u);
         let r = w.new_knot();
-        hoist(&mut w, r, &[ t, s ]);
+        hoist(&mut w, r, &[ t, s, u ]);
 
         let result = replace(&mut w, p, q, r);
         println!("{:?}", result);
