@@ -7,3 +7,4 @@ mod tests;
 mod traverse;
 mod search;
 mod io;
+mod replace;

@@ -2,6 +2,7 @@
 #[cfg(test)]
 mod tests {
     use crate::core::{DataValue, Weave};
+    use crate::replace::{replace};
     use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
     use crate::search::{find_all, find_one, require_component};
     use crate::shape::{annotate, hoist, markup};
@@ -270,5 +271,78 @@ mod tests {
         let elapsed = now.elapsed();
         println!("Elapsed: {:.2?}", elapsed);
         println!("{:?}", matching);
+    }
+
+    #[test]
+    fn test_replacements() {
+        let mut w: Weave = Weave::new();
+
+        let a = w.new_knot();
+        let b = w.new_knot();
+        w.new_arrow(a, b);
+        let p = w.new_knot();
+        hoist(&mut w, p, &[ a, b ]);
+
+        let x = w.new_knot();
+        let y = w.new_knot();
+        let z = w.new_knot();
+        w.new_arrow(x, y);
+        w.new_arrow(x, z);
+        w.new_arrow(y, z);
+        let q = w.new_knot();
+        hoist(&mut w, q, &[ x, y, z ]);
+
+        let t = w.new_knot();
+        let s = w.new_knot();
+        w.new_arrow(t, s);
+        let r = w.new_knot();
+        hoist(&mut w, r, &[ t, s ]);
+
+        let result = replace(&mut w, p, q, r);
+        assert!(matches!(result, Ok(_)));
+
+        annotate(&mut w, x, "Identity", &[DataValue::Entity(a)]);
+        annotate(&mut w, y, "Identity", &[DataValue::Entity(b)]);
+
+        let result = replace(&mut w, p, q, r);
+        assert!(matches!(result, Ok(_)));
+
+        if let Ok(hash) = result {
+            assert_eq!(hash.len(), 6);
+        }
+    }
+
+
+    #[test]
+    fn test_replace_reductions() {
+        let mut w: Weave = Weave::new();
+
+        let a = w.new_knot();
+        let b = w.new_knot();
+        let c = w.new_knot();
+        w.new_arrow(a, b);
+        w.new_arrow(b, c);
+        let p = w.new_knot();
+        hoist(&mut w, p, &[ a, b, c ]);
+
+        let x = w.new_knot();
+        annotate(&mut w, x, "Identity", &[ DataValue::Entity(a) ]);
+        let y = w.new_knot();
+        annotate(&mut w, y, "Identity", &[ DataValue::Entity(b) ]);
+        let z = w.new_knot();
+        w.new_arrow(y, z);
+        let q = w.new_knot();
+        hoist(&mut w, q, &[ x, y, z ]);
+
+        let t = w.new_knot();
+        let s = w.new_knot();
+        let u = w.new_knot();
+        w.new_arrow(t, s);
+        w.new_arrow(s, u);
+        let r = w.new_knot();
+        hoist(&mut w, r, &[ t, s, u ]);
+
+        let result = replace(&mut w, p, q, r);
+        println!("{:?}", result);
     }
 }

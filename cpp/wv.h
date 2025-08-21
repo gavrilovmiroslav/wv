@@ -7,6 +7,7 @@
 #pragma comment(lib, "ntdll.lib")
 
 enum class Datatype {
+  Entity,
   Int,
   Float,
   Bool,

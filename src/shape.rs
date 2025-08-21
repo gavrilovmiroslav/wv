@@ -1,5 +1,5 @@
 use crate::core::{DataValue, EntityId, Weave};
-use crate::traverse::{primary};
+use crate::traverse::{marks, primary};
 
 /*
     Add a component directly onto an entity
@@ -15,6 +15,16 @@ pub fn annotate(wv: &mut Weave, target: EntityId, name: &str, fields: &[DataValu
     let am = wv.new_mark(target);
     markup(wv, am, name, fields);
     am
+}
+
+pub fn get_annotation(wv: &Weave, target: EntityId, name: &str) -> Option<EntityId> {
+    for mark in marks(wv, &[target]) {
+        if wv.has_component(mark, name) {
+            return Some(mark);
+        }
+    }
+
+    None
 }
 
 /*
