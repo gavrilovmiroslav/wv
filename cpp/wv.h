@@ -21,9 +21,16 @@ struct WvDataField {
   Datatype datatype;
 };
 
+using EntityId = size_t;
+
 struct WvArray {
   size_t len;
   const size_t *ptr;
+};
+
+struct WvByteArray {
+  size_t len;
+  const uint8_t *ptr;
 };
 
 
@@ -44,6 +51,8 @@ uint64_t wv_def_data(Weave *wv, const char *name, const WvDataField *datatype, s
 void wv_delete_cascade(Weave *wv, size_t *id);
 
 void wv_delete_orphan(Weave *wv, size_t *id);
+
+EntityId wv_deserialize(Weave *wv, size_t len, const uint8_t *it);
 
 void wv_free_weave(Weave *weave);
 
@@ -124,6 +133,8 @@ WvArray wv_search__find_one(const Weave *wv,
                             size_t hoisted_target,
                             size_t *size,
                             size_t *count);
+
+WvByteArray wv_serialize(Weave *wv, size_t id);
 
 void wv_shape__connect(Weave *wv, size_t source, size_t len, const size_t *targets);
 

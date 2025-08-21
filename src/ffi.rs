@@ -1,6 +1,7 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
-use crate::core::{DataField, DataValue, Datatype, Weave};
+use crate::core::{DataField, DataValue, Datatype, EntityId, Weave};
+use crate::io;
 use crate::search::{find_all, find_one};
 use crate::traverse::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
@@ -264,6 +265,20 @@ impl Into<WvArray> for Vec<usize> {
     }
 }
 
+#[repr(C)]
+pub struct WvByteArray {
+    pub len: usize,
+    pub ptr: *const u8,
+}
+impl Into<WvByteArray> for Vec<u8> {
+    fn into(self) -> WvByteArray {
+        WvByteArray {
+            len: self.len(),
+            ptr: Box::into_raw(self.into_boxed_slice()) as *const u8,
+        }
+    }
+}
+
 #[no_mangle]
 extern "C" fn wv_move__deps(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
@@ -391,3 +406,15 @@ extern "C" fn wv_search__find_all(wv: &Weave, hoisted_pattern: usize, hoisted_ta
     key_values.into()
 }
 
+#[no_mangle]
+extern "C" fn wv_serialize(wv: &mut Weave, id : usize) -> WvByteArray
+{
+    io::serialize(wv, id).into()
+}
+
+#[no_mangle]
+extern "C" fn wv_deserialize(wv: &mut Weave, len: usize, it: *const u8) -> EntityId
+{
+    let it: &[u8] = unsafe { slice::from_raw_parts(it, len) };
+    io::deserialize(wv, it)
+}
