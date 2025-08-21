@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use crate::core::{DataValue, Weave};
-    use crate::replace::{replace, ReplaceError};
+    use crate::replace::{replace};
     use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
     use crate::search::{find_all, find_one, require_component};
     use crate::shape::{annotate, hoist, markup};
