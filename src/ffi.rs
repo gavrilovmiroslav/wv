@@ -1,6 +1,7 @@
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
-use crate::core::{DataField, DataValue, Datatype, Weave};
+use crate::core::{DataField, DataValue, Datatype, EntityId, Weave};
+use crate::io;
 use crate::search::{find_all, find_one};
 use crate::traverse::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
@@ -250,114 +251,129 @@ extern "C" fn wv_shape__lower(wv: &mut Weave, len: usize, arrows: *const usize) 
 }
 
 #[repr(C)]
-pub struct WvArray {
+pub struct WvEntityArray {
     pub len: usize,
     pub ptr: *const usize,
 }
 
-impl Into<WvArray> for Vec<usize> {
-    fn into(self) -> WvArray {
-        WvArray {
+impl Into<WvEntityArray> for Vec<usize> {
+    fn into(self) -> WvEntityArray {
+        WvEntityArray {
             len: self.len(),
             ptr: Box::into_raw(self.into_boxed_slice()) as *const usize,
         }
     }
 }
 
+#[repr(C)]
+pub struct WvByteArray {
+    pub len: usize,
+    pub ptr: *const u8,
+}
+
+impl Into<WvByteArray> for Vec<u8> {
+    fn into(self) -> WvByteArray {
+        WvByteArray {
+            len: self.len(),
+            ptr: Box::into_raw(self.into_boxed_slice()) as *const u8,
+        }
+    }
+}
+
 #[no_mangle]
-extern "C" fn wv_move__deps(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__deps(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     external_deps(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__arrows(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__arrows(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     arrows(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__arrows_in(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__arrows_in(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     arrows_in(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__arrows_out(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__arrows_out(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     arrows_out(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__marks(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__marks(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     marks(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__tethers(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__tethers(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     tethers(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__to_src(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__to_src(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     to_src(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__to_tgt(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__to_tgt(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     to_tgt(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__prev(wv: &mut Weave, it: usize) -> WvArray {
+extern "C" fn wv_move__prev(wv: &mut Weave, it: usize) -> WvEntityArray {
     prev(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__prev_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__prev_n(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     prev_n(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__next(wv: &mut Weave, it: usize) -> WvArray {
+extern "C" fn wv_move__next(wv: &mut Weave, it: usize) -> WvEntityArray {
     next(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__next_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__next_n(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     next_n(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__down(wv: &mut Weave, it: usize) -> WvArray  {
+extern "C" fn wv_move__down(wv: &mut Weave, it: usize) -> WvEntityArray  {
     down(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__down_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__down_n(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     down_n(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__up(wv: &mut Weave, it: usize) -> WvArray {
+extern "C" fn wv_move__up(wv: &mut Weave, it: usize) -> WvEntityArray {
     up(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_move__up_n(wv: &mut Weave, len: usize, it: *const usize) -> WvArray {
+extern "C" fn wv_move__up_n(wv: &mut Weave, len: usize, it: *const usize) -> WvEntityArray {
     let it: &[usize] = unsafe { slice::from_raw_parts(it, len) };
     up_n(&*wv, it).into()
 }
 
 #[no_mangle]
-extern "C" fn wv_search__find_one(wv: &Weave, hoisted_pattern: usize, hoisted_target: usize, size: &mut usize, count: &mut usize) -> WvArray {
+extern "C" fn wv_search__find_one(wv: &Weave, hoisted_pattern: usize, hoisted_target: usize, size: &mut usize, count: &mut usize) -> WvEntityArray {
     let result = find_one(wv, hoisted_pattern, hoisted_target);
     if let Some(hash) = result {
         *count = 1;
@@ -375,7 +391,7 @@ extern "C" fn wv_search__find_one(wv: &Weave, hoisted_pattern: usize, hoisted_ta
 }
 
 #[no_mangle]
-extern "C" fn wv_search__find_all(wv: &Weave, hoisted_pattern: usize, hoisted_target: usize, size: &mut usize, count: &mut usize) -> WvArray {
+extern "C" fn wv_search__find_all(wv: &Weave, hoisted_pattern: usize, hoisted_target: usize, size: &mut usize, count: &mut usize) -> WvEntityArray {
     let result = find_all(wv, hoisted_pattern, hoisted_target);
     *count = result.len();
     let mut key_values = vec![];
@@ -391,3 +407,15 @@ extern "C" fn wv_search__find_all(wv: &Weave, hoisted_pattern: usize, hoisted_ta
     key_values.into()
 }
 
+#[no_mangle]
+extern "C" fn wv_serialize(wv: &mut Weave, id : usize) -> WvByteArray
+{
+    io::serialize(wv, id).into()
+}
+
+#[no_mangle]
+extern "C" fn wv_deserialize(wv: &mut Weave, len: usize, it: *const u8) -> EntityId
+{
+    let it: &[u8] = unsafe { slice::from_raw_parts(it, len) };
+    io::deserialize(wv, it)
+}

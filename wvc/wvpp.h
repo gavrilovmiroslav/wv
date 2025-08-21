@@ -454,6 +454,20 @@ namespace weave
 			return WeaveLibrarySearch(GetWeave());
 		}
 
+		std::vector<uint8_t> Serialize(EntityId id)
+		{
+			std::vector<uint8_t> result;
+			auto arr = wv_serialize(m_Weave, id);
+			result.assign(arr.ptr, arr.ptr + arr.len);
+			return result;
+		}
+
+		EntityId Deserialize(std::vector<uint8_t> serializedData)
+		{
+			EntityId id = wv_deserialize(m_Weave, serializedData.size(), serializedData.data());
+			return id;
+		}
+
 	private:
 		::Weave* m_Weave;
 	};

@@ -21,9 +21,16 @@ struct WvDataField {
   Datatype datatype;
 };
 
-struct WvArray {
+using EntityId = size_t;
+
+struct WvEntityArray {
   size_t len;
   const size_t *ptr;
+};
+
+struct WvByteArray {
+  size_t len;
+  const uint8_t *ptr;
 };
 
 
@@ -44,6 +51,8 @@ uint64_t wv_def_data(Weave *wv, const char *name, const WvDataField *datatype, s
 void wv_delete_cascade(Weave *wv, size_t *id);
 
 void wv_delete_orphan(Weave *wv, size_t *id);
+
+EntityId wv_deserialize(Weave *wv, size_t len, const uint8_t *it);
 
 void wv_free_weave(Weave *weave);
 
@@ -69,37 +78,37 @@ bool wv_is_tether(const Weave *wv, size_t id);
 
 bool wv_is_valid(const Weave *wv, size_t id);
 
-WvArray wv_move__arrows(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__arrows(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__arrows_in(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__arrows_in(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__arrows_out(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__arrows_out(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__deps(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__deps(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__down(Weave *wv, size_t it);
+WvEntityArray wv_move__down(Weave *wv, size_t it);
 
-WvArray wv_move__down_n(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__down_n(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__marks(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__marks(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__next(Weave *wv, size_t it);
+WvEntityArray wv_move__next(Weave *wv, size_t it);
 
-WvArray wv_move__next_n(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__next_n(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__prev(Weave *wv, size_t it);
+WvEntityArray wv_move__prev(Weave *wv, size_t it);
 
-WvArray wv_move__prev_n(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__prev_n(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__tethers(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__tethers(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__to_src(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__to_src(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__to_tgt(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__to_tgt(Weave *wv, size_t len, const size_t *it);
 
-WvArray wv_move__up(Weave *wv, size_t it);
+WvEntityArray wv_move__up(Weave *wv, size_t it);
 
-WvArray wv_move__up_n(Weave *wv, size_t len, const size_t *it);
+WvEntityArray wv_move__up_n(Weave *wv, size_t len, const size_t *it);
 
 size_t wv_new_arrow(Weave *wv, size_t src, size_t tgt);
 
@@ -113,17 +122,19 @@ Weave *wv_new_weave();
 
 void wv_remove_component(Weave *wv, size_t entity, const char *name);
 
-WvArray wv_search__find_all(const Weave *wv,
-                            size_t hoisted_pattern,
-                            size_t hoisted_target,
-                            size_t *size,
-                            size_t *count);
+WvEntityArray wv_search__find_all(const Weave *wv,
+                                  size_t hoisted_pattern,
+                                  size_t hoisted_target,
+                                  size_t *size,
+                                  size_t *count);
 
-WvArray wv_search__find_one(const Weave *wv,
-                            size_t hoisted_pattern,
-                            size_t hoisted_target,
-                            size_t *size,
-                            size_t *count);
+WvEntityArray wv_search__find_one(const Weave *wv,
+                                  size_t hoisted_pattern,
+                                  size_t hoisted_target,
+                                  size_t *size,
+                                  size_t *count);
+
+WvByteArray wv_serialize(Weave *wv, size_t id);
 
 void wv_shape__connect(Weave *wv, size_t source, size_t len, const size_t *targets);
 
