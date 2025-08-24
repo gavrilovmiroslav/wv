@@ -2,6 +2,7 @@ use std::ffi::{c_char, c_void, CStr, CString};
 use std::slice;
 use crate::core::{DataField, DataValue, Datatype, EntityId, Weave};
 use crate::io;
+use crate::replace::replace;
 use crate::search::{find_all, find_one};
 use crate::traverse::{arrows, arrows_in, arrows_out, external_deps, down, down_n, marks, next, next_n, prev, prev_n, tethers, to_src, to_tgt, up, up_n};
 use crate::shape::{connect, hoist, lift, lower, parent, pivot};
@@ -168,7 +169,7 @@ extern "C" fn wv_get_data_field(wv: &Weave, name: *const c_char, index: usize) -
 extern "C" fn wv_add_component(wv: &mut Weave, entity: usize, name: *const c_char, fields: *const *const c_void) {
     let cstr = unsafe { CStr::from_ptr(name) }.to_str().expect("CString to_str failed");
     let count = wv.get_datatype_field_count(cstr);
-    let fields = unsafe { slice::from_raw_parts(fields, count) };
+    let fields = unsafe { slice::from_raw_parts(fields, count) }.iter().cloned().collect::<Vec<_>>();
     let mut values = vec![];
     for i in 0..count {
         let df = wv.get_datatype_field(cstr, i);
@@ -405,6 +406,15 @@ extern "C" fn wv_search__find_all(wv: &Weave, hoisted_pattern: usize, hoisted_ta
     }
 
     key_values.into()
+}
+
+#[no_mangle]
+extern "C" fn wv_replace__replace(wv: &mut Weave, hoisted_pattern: usize, hoisted_goal: usize, hoisted_target: usize) -> EntityId {
+    if let Ok(result) = replace(wv, hoisted_pattern, hoisted_goal, hoisted_target) {
+        result
+    } else {
+        NIL
+    }
 }
 
 #[no_mangle]

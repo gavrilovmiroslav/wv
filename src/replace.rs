@@ -3,7 +3,7 @@ use std::collections::{HashMap};
 use multimap::MultiMap;
 use crate::core::{DataValue, EntityId, Weave};
 use crate::search::{find_one, prepare_search_space, SearchSpace};
-use crate::shape::get_annotation;
+use crate::shape::{get_annotation, hoist};
 use crate::traverse::down;
 
 #[derive(Debug)]
@@ -146,7 +146,7 @@ pub(crate) fn get_match_mapping(wv: &Weave, hoisted_pattern: EntityId, hoisted_g
 pub fn replace(wv: &mut Weave,
                hoisted_pattern: EntityId,
                hoisted_goal: EntityId,
-               hoisted_target: EntityId) -> Result<MultiMap<Option<EntityId>, Option<EntityId>>, ReplaceError> {
+               hoisted_target: EntityId) -> Result<EntityId, ReplaceError> {
 
     let pattern_to_goal = get_match_mapping(wv, hoisted_pattern, hoisted_goal);
     if let Ok(matching_goal) = pattern_to_goal {
@@ -192,7 +192,23 @@ pub fn replace(wv: &mut Weave,
                 }
             }
 
-            return Ok(gt);
+            let result = wv.new_knot();
+            for (k, v) in gt {
+                let binding = wv.new_tether(result);
+                let left = wv.new_tether(binding);
+                let right = wv.new_tether(binding);
+                wv.new_arrow(left, right);
+                if let Some(k) = k {
+                    hoist(wv, left, &[k]);
+                }
+
+                let e = v.iter()
+                    .filter(|&o| o.is_some())
+                    .map(|o| o.unwrap()).collect::<Vec<_>>();
+                hoist(wv, right, &e);
+            }
+
+            return Ok(result);
         }
 
         Err(ReplaceError::FailedToFindUniqueTarget)

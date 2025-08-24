@@ -122,6 +122,11 @@ Weave *wv_new_weave();
 
 void wv_remove_component(Weave *wv, size_t entity, const char *name);
 
+EntityId wv_replace__replace(Weave *wv,
+                             size_t hoisted_pattern,
+                             size_t hoisted_goal,
+                             size_t hoisted_target);
+
 WvEntityArray wv_search__find_all(const Weave *wv,
                                   size_t hoisted_pattern,
                                   size_t hoisted_target,

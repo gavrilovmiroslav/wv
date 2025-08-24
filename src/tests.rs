@@ -306,10 +306,6 @@ mod tests {
 
         let result = replace(&mut w, p, q, r);
         assert!(matches!(result, Ok(_)));
-
-        if let Ok(hash) = result {
-            assert_eq!(hash.len(), 6);
-        }
     }
 
 
