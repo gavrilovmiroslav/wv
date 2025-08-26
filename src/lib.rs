@@ -3,8 +3,9 @@
 pub mod core;
 pub mod ffi;
 pub mod shape;
-mod tests;
-mod traverse;
-mod search;
-mod io;
-mod replace;
+pub mod tests;
+pub mod traverse;
+pub mod search;
+pub mod io;
+pub mod replace;
+pub mod ds;
