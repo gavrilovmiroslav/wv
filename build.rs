@@ -22,4 +22,11 @@ fn main() {
     cbindgen::generate_with_config(&crate_dir, config)
         .unwrap()
         .write_to_file(cpp_dir.join("wv.h"));
+
+    csbindgen::Builder::default()
+        .input_extern_file("src/ffi.rs")
+        .csharp_dll_name("wv")
+        .csharp_namespace("Weave")
+        .generate_csharp_file("cs/wv.g.cs")
+        .unwrap();
 }

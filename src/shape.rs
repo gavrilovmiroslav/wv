@@ -1,5 +1,5 @@
 use crate::core::{DataValue, EntityId, Weave};
-use crate::traverse::{marks, primary};
+use crate::traverse::{arrows_between, down, marks, primary, tethers};
 
 /*
     Add a component directly onto an entity
@@ -77,6 +77,26 @@ pub fn hoist(wv: &mut Weave, subject: EntityId, objects: &[EntityId]) {
         let guide = wv.new_mark(object);
         wv.new_arrow(anchor, guide);
     }
+}
+
+pub fn hoist_one(wv: &mut Weave, subject: EntityId, object: EntityId) -> EntityId {
+    let anchor = wv.new_tether(subject);
+    let guide = wv.new_mark(object);
+    wv.new_arrow(anchor, guide)
+}
+
+pub fn unhoist(wv: &mut Weave, subject: EntityId, objects: &[EntityId]) {
+    for object in primary(wv, objects) {
+        for arrow in arrows_between(wv, &tethers(wv, &[subject]), &marks(wv, &[object])) {
+            let (src, tgt) = (wv.src(arrow), wv.tgt(arrow));
+            wv.delete_cascade(src);
+            wv.delete_cascade(tgt);
+        }
+    }
+}
+
+pub fn unhoist_all_from(wv: &mut Weave, subject: EntityId) {
+    unhoist(wv, subject, &down(wv, subject));
 }
 
 /*

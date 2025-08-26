@@ -58,6 +58,14 @@ pub fn arrows(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     h.into_iter().collect()
 }
 
+pub fn arrows_between(wv: &Weave, from: &[EntityId], to: &[EntityId]) -> Vec<EntityId> {
+    let mut h = HashSet::new();
+    h.extend(arrows_out(wv, from));
+    let in_arrows = arrows_in(wv, to);
+    h.retain(|e| in_arrows.contains(e));
+    h.into_iter().collect()
+}
+
 pub fn arrows_in(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     let mut h = HashSet::new();
     for i in it {
@@ -78,6 +86,12 @@ pub fn marks(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
         h.extend(v);
     }
     h.into_iter().collect()
+}
+
+pub fn tether(wv: &Weave, id: EntityId) -> Option<EntityId> {
+    wv.get_dependents_for_source(id)
+        .iter().filter(|e| **e != id && wv.is_tether(**e))
+        .cloned().collect::<Vec<_>>().first().copied()
 }
 
 pub fn tethers(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
@@ -149,6 +163,14 @@ pub fn next_n(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
 //                  to_tgt
 pub fn down(wv: &Weave, it: EntityId) -> Vec<EntityId> {
     to_tgt(wv, &to_tgt(wv, &arrows_out(wv, &tethers(wv, &[it]))))
+}
+
+pub fn down_half(wv: &Weave, it: EntityId) -> Option<EntityId> {
+    arrows_out(wv, &tethers(wv, &[it])).first().copied()
+}
+
+pub fn up_half(wv: &Weave, arr: EntityId) -> Option<EntityId> {
+    to_src(wv, &to_src(wv, &[arr])).first().copied()
 }
 
 pub fn down_n(wv: &Weave, its: &[EntityId]) -> Vec<EntityId> {
