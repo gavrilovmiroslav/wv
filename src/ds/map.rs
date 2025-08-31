@@ -31,7 +31,7 @@ pub fn map_add(wv: &mut Weave, map: EntityId, key: EntityId, values: &[EntityId]
 }
 
 pub fn map_get(wv: &mut Weave, map: EntityId, key: EntityId) -> Vec<EntityId> {
-    let (ks, vs) = (wv.src(map), wv.tgt(map));
+    let (ks, _vs) = (wv.src(map), wv.tgt(map));
     if let Some(arr) = down_half(wv, key) {
         if let Some(kv_mapping) = arrows_in(wv, &[arr]).first() {
             let key_entry = wv.src(*kv_mapping);

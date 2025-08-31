@@ -1,6 +1,14 @@
 use crate::core::{DataValue, EntityId, Weave};
 use crate::traverse::{arrows_between, down, marks, primary, tethers};
 
+pub fn edge(wv: &mut Weave, a: EntityId, b: EntityId) -> (EntityId, EntityId) {
+    let n = wv.new_tether(a);
+    let m = wv.new_tether(b);
+    wv.change_tgt(n, m);
+    wv.change_tgt(m, n);
+    (n, m)
+}
+
 /*
     Add a component directly onto an entity
  */

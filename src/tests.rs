@@ -3,9 +3,9 @@
 mod tests {
     use crate::core::{DataValue, Weave};
     use crate::replace::{replace};
-    use crate::traverse::{arrows_out, down, down_n, marks, next, prev, tethers, to_tgt, up, up_n};
+    use crate::traverse::{arrows_out, down, down_n, hop, marks, next, prev, tethers, to_tgt, up, up_n};
     use crate::search::{find_all, find_one, require_component};
-    use crate::shape::{annotate, hoist, markup};
+    use crate::shape::{annotate, edge, hoist, markup};
 
     #[test]
     fn delete_becomes_nil() {
@@ -340,5 +340,36 @@ mod tests {
 
         let result = replace(&mut w, p, q, r);
         println!("{:?}", result);
+    }
+
+    #[test]
+    fn test_hop() {
+        let mut w: Weave = Weave::new();
+        let a = w.new_knot();
+        let b = w.new_tether(a);
+        let c = w.new_tether(a);
+        let r = w.new_arrow(b, c);
+        let (n, m) = edge(&mut w, b, c);
+        assert_eq!(hop(&w, r), c);
+        assert_eq!(hop(&w, n), c);
+        assert_eq!(hop(&w, m), b);
+    }
+
+    #[test]
+    fn test_fsm() {
+        let mut w: Weave = Weave::new();
+        let a = w.new_knot();
+        let b = w.new_knot();
+        let c = w.new_knot();
+        let d = w.new_knot();
+        let ab = w.new_arrow(a, b);
+        let bc = w.new_arrow(b, c);
+        let cc = w.new_arrow(c, c);
+        let cb = w.new_arrow(c, b);
+        let bd = w.new_arrow(b, d);
+        let da = w.new_arrow(d, a);
+
+        let g = w.new_knot();
+        hoist(&mut w, g, &[ a, b, c, d ]);
     }
 }

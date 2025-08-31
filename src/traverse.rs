@@ -126,6 +126,23 @@ pub fn to_tgt(wv: &Weave, it: &[EntityId]) -> Vec<EntityId> {
     }).collect()
 }
 
+pub fn other_edge(wv: &Weave, e: EntityId) -> EntityId {
+    wv.tgt(e)
+}
+
+pub fn hop(wv: &Weave, e: EntityId) -> EntityId {
+    let t = wv.tgt(e);
+    if wv.is_arrow(t) {
+        wv.src(t)
+    } else {
+        t
+    }
+}
+
+pub fn neighbors(wv: &Weave, e: EntityId) -> Vec<EntityId> {
+    arrows_out(wv, &[e]).iter().map(|e| hop(wv, *e)).collect()
+}
+
 pub fn prev(wv: &Weave, it: EntityId) -> Vec<EntityId> {
     let ds = external_deps(wv, &[it]);
     let mut ts = to_src(wv, &ds);
